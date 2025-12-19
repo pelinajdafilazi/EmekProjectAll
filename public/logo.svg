@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- Outer circle -->
+  <circle cx="60" cy="60" r="58" fill="#1a1a2e" stroke="#c41e3a" stroke-width="3"/>
+  
+  <!-- Inner decorative circle -->
+  <circle cx="60" cy="60" r="50" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.5"/>
+  
+  <!-- Star/Athletic symbol -->
+  <path d="M60 20 L68 45 L95 45 L73 62 L82 90 L60 73 L38 90 L47 62 L25 45 L52 45 Z" 
+        fill="#c41e3a" stroke="#d4af37" stroke-width="1"/>
+  
+  <!-- Volleyball lines (curved) -->
+  <path d="M35 60 Q60 40 85 60" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+  <path d="M35 60 Q60 80 85 60" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+  <path d="M60 32 Q40 60 60 88" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+  <path d="M60 32 Q80 60 60 88" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Text around the circle -->
+  <defs>
+    <path id="textPath" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"/>
+  </defs>
+  <text font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#d4af37">
+    <textPath href="#textPath" startOffset="15%">EMEK SPOR KULÜBÜ</textPath>
+  </text>
+</svg>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

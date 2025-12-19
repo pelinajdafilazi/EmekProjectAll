@@ -1,0 +1,154 @@
+/* ===========================================
+   BUTTON STYLES
+   - Base Button
+   - Primary & Secondary
+   - Export Buttons
+   - Photo Options
+=========================================== */
+
+/* Base Button */
+.btn {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: var(--color-background);
+  color: var(--color-primary);
+  border: 0.0625rem solid var(--color-border);
+}
+
+.btn-primary:hover {
+  background: var(--color-background-gray);
+  transform: translateY(-0.125rem);
+}
+
+.btn-secondary {
+  background: var(--color-background);
+  color: var(--color-primary);
+  border: 0.0625rem solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  border-color: #9ca3af;
+  background: var(--color-background-alt);
+}
+
+/* Export Buttons Header */
+.form-export-header {
+  display: flex;
+  gap: 0.75rem;
+  width: 210mm;
+  margin-bottom: 1rem;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.export-btn-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background-color: var(--color-background);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: 0.5rem;
+  font-family: var(--font-family);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.export-btn-top:hover {
+  background-color: var(--color-background-alt);
+  border-color: var(--color-border-dark);
+}
+
+.export-btn-top:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.export-btn-top svg {
+  flex-shrink: 0;
+}
+
+/* Save Button */
+.export-btn-top.save-btn {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+  color: var(--color-background);
+}
+
+.export-btn-top.save-btn:hover {
+  background-color: var(--color-success-hover);
+  border-color: var(--color-success-hover);
+}
+
+.export-btn-top.save-btn:disabled {
+  background-color: #6ee7b7;
+  border-color: #6ee7b7;
+}
+
+/* Yakın Ekle Header Button */
+.export-btn-top.yakin-ekle-header-btn {
+  background-color: var(--color-orange);
+  border-color: var(--color-orange);
+  color: var(--color-background);
+}
+
+.export-btn-top.yakin-ekle-header-btn:hover {
+  background-color: var(--color-orange-hover);
+  border-color: var(--color-orange-hover);
+}
+
+/* Photo Options */
+.photo-options-outside {
+  position: absolute;
+  left: calc(50% + 105mm + 1.25rem);
+  top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.photo-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background-color: var(--color-background);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: 0.5rem;
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.photo-option-btn:hover {
+  background-color: var(--color-background-gray);
+  border-color: var(--color-border-dark);
+}
+
+.photo-option-btn svg {
+  flex-shrink: 0;
+}
+

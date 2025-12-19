@@ -1,0 +1,449 @@
+/* ===========================================
+   STUDENT LIST MODAL STYLES
+=========================================== */
+
+/* Modal Overlay */
+.student-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Modal Container */
+.student-modal {
+  position: relative;
+  width: 100%;
+  max-width: 1189px;
+  height: 834px;
+  background: #ffffff;
+  border: 3px solid #5677fb;
+  border-radius: 24px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Close Button */
+.student-modal__close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.student-modal__close:hover {
+  opacity: 0.7;
+}
+
+/* Modal Title */
+.student-modal__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  color: #5677fb;
+  margin: 0 0 32px 0;
+  text-align: left;
+}
+
+/* Modal Content */
+.student-modal__content {
+  display: grid;
+  grid-template-columns: 1fr 5px 1fr;
+  gap: 24px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Panel */
+.student-modal__left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: hidden;
+}
+
+/* Search Bar */
+.student-modal__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.student-modal__search-input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(30, 30, 30, 0.50);
+  border: none;
+  border-bottom: 1px solid #5677fb;
+  outline: none;
+  background: transparent;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.student-modal__search-input::placeholder {
+  color: rgba(30, 30, 30, 0.50);
+}
+
+.student-modal__search-icon {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+}
+
+/* Tabs */
+.student-modal__tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #5677fb;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.student-modal__tab {
+  background: transparent;
+  border: none;
+  padding: 8px 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(30, 30, 30, 0.50);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.student-modal__tab:hover {
+  color: #5677fb;
+}
+
+.student-modal__tab--active {
+  color: #5677fb;
+}
+
+.student-modal__tab--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: #5677fb;
+}
+
+/* Student List */
+.student-modal__list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 8px;
+}
+
+.student-modal__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.student-modal__list::-webkit-scrollbar-track {
+  background: rgba(86, 119, 251, 0.1);
+  border-radius: 3px;
+}
+
+.student-modal__list::-webkit-scrollbar-thumb {
+  background: #5677fb;
+  border-radius: 3px;
+}
+
+.student-modal__list::-webkit-scrollbar-thumb:hover {
+  background: #4566e8;
+}
+
+/* Student Row */
+.student-modal__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 44px 1fr 40px 150px 90px 20px 20px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+  border-radius: 8px;
+}
+
+.student-modal__row:hover {
+  background: rgba(86, 119, 251, 0.05);
+}
+
+.student-modal__row--active {
+  background: rgba(86, 119, 251, 0.1);
+}
+
+.student-modal__row-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid #5677fb;
+  flex-shrink: 0;
+}
+
+.student-modal__row-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-modal__row-name {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: rgba(30, 30, 30, 0.50);
+  text-align: left;
+}
+
+.student-modal__row-meta {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(30, 30, 30, 0.50);
+  text-align: left;
+}
+
+.student-modal__row-meta--wide {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-modal__row-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Vertical Divider */
+.student-modal__divider {
+  width: 5px;
+  background: #5677fb;
+  border-radius: 999px;
+}
+
+/* Right Panel */
+.student-modal__right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.student-modal__right::-webkit-scrollbar {
+  width: 6px;
+}
+
+.student-modal__right::-webkit-scrollbar-track {
+  background: rgba(86, 119, 251, 0.1);
+  border-radius: 3px;
+}
+
+.student-modal__right::-webkit-scrollbar-thumb {
+  background: #5677fb;
+  border-radius: 3px;
+}
+
+/* Student Profile */
+.student-modal__profile {
+  width: 166px;
+  height: 166px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.student-modal__profile-avatar {
+  width: 166px;
+  height: 166px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid #5677fb;
+  background: #ffffff;
+}
+
+.student-modal__profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-modal__profile-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #5677fb;
+  text-align: center;
+}
+
+.student-modal__profile-position {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.62);
+  text-align: center;
+}
+
+/* Student Details */
+.student-modal__details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.student-modal__detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(86, 119, 251, 0.2);
+}
+
+.student-modal__detail-row:last-child {
+  border-bottom: 5px solid #5677fb;
+  padding-bottom: 16px;
+}
+
+.student-modal__detail-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #5677fb;
+}
+
+.student-modal__detail-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+/* Status Message */
+.student-modal__status {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: rgba(86, 119, 251, 0.37);
+  text-align: center;
+  margin: 40px 0;
+  line-height: 1.4;
+}
+
+/* Assign Button */
+.student-modal__assign-btn {
+  background: #00C853;
+  border: none;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  padding: 12px 32px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: auto;
+}
+
+.student-modal__assign-btn:hover {
+  opacity: 0.9;
+}
+
+.student-modal__assign-btn:active {
+  transform: scale(0.98);
+}
+
+/* Empty State */
+.student-modal__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(30, 30, 30, 0.30);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .student-modal {
+    max-width: 95vw;
+    height: 90vh;
+    padding: 24px;
+  }
+
+  .student-modal__title {
+    font-size: 32px;
+    margin-bottom: 24px;
+  }
+
+  .student-modal__content {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .student-modal__divider {
+    display: none;
+  }
+
+  .student-modal__right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .student-modal {
+    padding: 16px;
+  }
+
+  .student-modal__title {
+    font-size: 24px;
+  }
+
+  .student-modal__row {
+    grid-template-columns: 44px 1fr 40px;
+    gap: 12px;
+  }
+
+  .student-modal__row-meta--wide,
+  .student-modal__row-meta:nth-child(5),
+  .student-modal__row-meta:nth-child(6),
+  .student-modal__row-menu {
+    display: none;
+  }
+}

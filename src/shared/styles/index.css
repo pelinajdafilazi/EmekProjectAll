@@ -1,0 +1,34 @@
+/* ===========================================
+   EMEK SPOR - MAIN STYLESHEET
+   
+   CSS Architecture:
+   - base.css        : Variables, reset, typography
+   - layout.css      : App container, main content
+   - sidebar.css     : Sidebar, settings, form groups
+   - buttons.css     : All button styles
+   - form.css        : A4 form container, header
+   - tables.css      : Info tables, section headers
+   - sections.css    : Principles, consent, signature
+   - yakinlar.css    : Relatives section
+   - datepicker.css  : React DatePicker styling
+   - webcam.css      : Webcam modal
+   - responsive.css  : Media queries, print styles
+=========================================== */
+
+/* Shared global styles */
+@import './base.css';
+@import './layout.css';
+@import './buttons.css';
+@import './tables.css';
+@import './sections.css';
+@import './responsive.css';
+
+/* Page-specific styles */
+@import '../../pages/Landing/landing.css';
+@import '../../pages/Form/styles/form.css';
+@import '../../pages/Form/styles/sidebar.css';
+@import '../../pages/Form/styles/yakinlar.css';
+@import '../../pages/Form/styles/datepicker.css';
+@import '../../pages/Form/styles/webcam.css';
+@import '../../pages/Dashboard/styles/dashboard.css';
+@import '../../pages/Dashboard/styles/student-modal.css';

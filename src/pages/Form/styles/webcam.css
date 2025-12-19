@@ -1,0 +1,42 @@
+/* ===========================================
+   WEBCAM MODAL STYLES
+=========================================== */
+
+.webcam-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.webcam-container {
+  background: var(--color-background);
+  padding: 1.875rem;
+  border-radius: 1rem;
+  text-align: center;
+}
+
+.webcam-container h3 {
+  color: var(--color-primary);
+  margin-bottom: 1.25rem;
+  font-family: var(--font-family);
+  font-weight: 700;
+}
+
+.webcam-container video {
+  border-radius: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.webcam-buttons {
+  display: flex;
+  gap: 0.9375rem;
+  justify-content: center;
+}
+

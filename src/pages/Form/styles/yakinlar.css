@@ -1,0 +1,190 @@
+/* ===========================================
+   YAKINLAR (RELATIVES) SECTION
+   - Section Container
+   - Header & Buttons
+   - Cards
+   - Fields
+=========================================== */
+
+/* Section Container */
+.yakinlar-section {
+  width: 210mm;
+  margin-top: 1.5rem;
+  background: var(--color-background);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Header */
+.yakinlar-header {
+  background: linear-gradient(135deg, var(--color-orange) 0%, var(--color-orange-hover) 100%);
+  padding: 0.625rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.yakinlar-header h3 {
+  font-family: var(--font-family);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-background);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Header Buttons */
+.yakinlar-header-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.yakinlar-circle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  color: var(--color-background);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.yakinlar-circle-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: var(--color-background);
+  transform: scale(1.1);
+}
+
+.yakinlar-circle-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.yakinlar-circle-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+.yakinlar-circle-btn.save svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Cards List */
+.yakinlar-list {
+  padding: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Individual Card */
+.yakin-card {
+  background: var(--color-background-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  width: calc(25% - 0.5625rem);
+  min-width: 180px;
+}
+
+.yakin-card:hover {
+  border-color: var(--color-border-dark);
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+
+/* Card Header */
+.yakin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.yakin-number {
+  font-family: var(--font-family);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-orange);
+}
+
+/* Remove Button */
+.yakin-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--color-danger-light);
+  border: none;
+  border-radius: 0.25rem;
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.yakin-remove-btn:hover {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+.yakin-remove-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Card Fields */
+.yakin-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.625rem;
+}
+
+.yakin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.yakin-field label {
+  font-family: var(--font-family);
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.yakin-field input {
+  padding: 0.375rem 0.5rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  transition: all var(--transition-fast);
+}
+
+.yakin-field input:focus {
+  outline: none;
+  border-color: var(--color-orange);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+}
+
+.yakin-field input::placeholder {
+  color: #9ca3af;
+  font-size: 0.6875rem;
+}
+

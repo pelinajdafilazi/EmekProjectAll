@@ -1,0 +1,55 @@
+/* ===========================================
+   BASE STYLES
+   - CSS Variables
+   - Reset
+   - Typography
+   - Global Styles
+   - everything globals.css
+=========================================== */
+
+:root {
+  /* Colors */
+  --color-primary: #111827;
+  --color-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-border-dark: #d1d5db;
+  --color-background: #ffffff;
+  --color-background-alt: #f9fafb;
+  --color-background-gray: #f3f4f6;
+  
+  /* Accent Colors */
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-orange: #f97316;
+  --color-orange-hover: #ea580c;
+  --color-danger: #dc2626;
+  --color-danger-light: #fee2e2;
+  
+  /* Layout */
+  --sidebar-width: 20rem;
+  
+  /* Typography */
+  --font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--color-background);
+  min-height: 100vh;
+  color: var(--color-primary);
+}
+
