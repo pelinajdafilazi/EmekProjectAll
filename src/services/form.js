@@ -45,6 +45,7 @@ function transformToBackendFormat(formData) {
       schoolName: sporcu.okulu,
       homeAddress: sporcu.evAdresi,
       branch: sporcu.bransi,
+      photo: formData.photo || null, // Fotoğrafı ekle
       motherInfo: {
         firstName: anneName.firstName,
         lastName: anneName.lastName,

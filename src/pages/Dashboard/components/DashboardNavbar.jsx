@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function DashboardNavbar({ activeItem = 'Öğrenciler', onNavigate }) {
+  const navigate = useNavigate();
   const menuItems = ['Öğrenciler', 'Gruplar', 'Dersler', 'Ödemeler', 'Yoklamalar'];
 
   return (
@@ -23,7 +25,11 @@ export default function DashboardNavbar({ activeItem = 'Öğrenciler', onNavigat
         ))}
       </nav>
 
-      <button type="button" className="dash-nav__cta">
+      <button 
+        type="button" 
+        className="dash-nav__cta"
+        onClick={() => navigate('/form')}
+      >
         SPORCU EKLE
       </button>
     </header>

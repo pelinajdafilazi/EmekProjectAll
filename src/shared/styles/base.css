@@ -48,7 +48,7 @@ html {
 
 body {
   font-family: var(--font-family);
-  background: var(--color-background);
+  background: var(--color-background-gray);
   min-height: 100vh;
   color: var(--color-primary);
 }

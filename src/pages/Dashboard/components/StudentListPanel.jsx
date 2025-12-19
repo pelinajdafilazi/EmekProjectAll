@@ -9,10 +9,16 @@ function StudentAvatar({ photo, name }) {
   );
 }
 
-export default function StudentListPanel({ students, selectedId, onSelect }) {
+export default function StudentListPanel({ students, selectedId, onSelect, loading }) {
   return (
     <aside className="dash-left">
       <h1 className="dash-left__title">Öğrenci Listesi</h1>
+
+      {loading && (
+        <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>
+          Yükleniyor...
+        </div>
+      )}
 
       <div className="dash-left__groups">
         <div className="dash-left__groups-title">Gruplar</div>

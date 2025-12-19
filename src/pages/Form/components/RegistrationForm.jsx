@@ -181,6 +181,11 @@ const RegistrationForm = forwardRef((props, ref) => {
         ...state.formData,
         createdAt: state.formData.createdAt || new Date().toISOString()
       });
+      
+      // Success - trigger reload in dashboard (using localStorage event)
+      localStorage.setItem('student_created', Date.now().toString());
+      localStorage.removeItem('student_created'); // Trigger event
+      
       alert(result.message || 'Kayıt başarıyla oluşturuldu!');
     } catch (error) {
       alert(error.message || 'Form kaydedilirken bir hata oluştu.');

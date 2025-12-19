@@ -103,3 +103,38 @@
   border: 0.0625rem solid #000000;
 }
 
+/* Form Page Header - Panele Dön Button */
+.form-page-header {
+  width: 210mm;
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 10;
+}
+
+.form-page-back-button {
+  background: #5677FB;
+  border: none;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(86, 119, 251, 0.2);
+}
+
+.form-page-back-button:hover {
+  background: #4567eb;
+  box-shadow: 0 4px 8px rgba(86, 119, 251, 0.3);
+  transform: translateY(-1px);
+}
+
+.form-page-back-button:active {
+  transform: translateY(0);
+}
+

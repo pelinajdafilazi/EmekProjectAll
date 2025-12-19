@@ -9,6 +9,7 @@
   margin: 0 auto;
   display: flex;
   min-height: 100vh;
+  background: var(--color-background-gray);
 }
 
 /* Main Content */
@@ -27,5 +28,7 @@
   position: relative;
   display: flex;
   justify-content: center;
+  width: 210mm;
+  max-width: 100%;
 }
 
