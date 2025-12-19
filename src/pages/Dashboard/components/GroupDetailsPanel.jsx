@@ -136,6 +136,24 @@ export default function GroupDetailsPanel({ group, students }) {
     });
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`"${group.name}" grubunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+      return;
+    }
+
+    setError(null);
+    setIsSaving(true);
+    try {
+      await actions.deleteGroup(group.id);
+      // Silme başarılı - grup zaten context'te kaldırıldı
+      setIsSaving(false);
+    } catch (err) {
+      console.error('Grup silme hatası:', err);
+      setError(err.message || 'Grup silinirken bir hata oluştu');
+      setIsSaving(false);
+    }
+  };
+
   if (!group) {
     return (
       <section className="dash-right">
@@ -233,6 +251,14 @@ export default function GroupDetailsPanel({ group, students }) {
                 disabled={isSaving}
               >
                 İptal
+              </button>
+              <button 
+                type="button" 
+                className="group-info__delete-btn" 
+                onClick={handleDelete}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Siliniyor...' : 'Grubu Sil'}
               </button>
             </div>
           ) : (

@@ -45,6 +45,8 @@ function transformToBackendFormat(formData) {
       schoolName: sporcu.okulu,
       homeAddress: sporcu.evAdresi,
       branch: sporcu.bransi,
+      phoneNumber: sporcu.sporcuCep || null, // Sporcu cep telefonu
+      classNumber: sporcu.sinifNo || null, // Sınıf numarası
       photo: formData.photo || null, // Fotoğrafı ekle
       motherInfo: {
         firstName: anneName.firstName,
@@ -77,8 +79,8 @@ function transformToBackendFormat(formData) {
         adiSoyadi: `${backendData.firstName || ''} ${backendData.lastName || ''}`.trim(),
         dogumTarihi: backendData.dateOfBirth ? backendData.dateOfBirth.split('T')[0] : '',
         okulu: backendData.schoolName || '',
-        sinifNo: '',
-        sporcuCep: '',
+        sinifNo: backendData.classNumber || '',
+        sporcuCep: backendData.phoneNumber || '',
         evAdresi: backendData.homeAddress || ''
       },
       baba: {

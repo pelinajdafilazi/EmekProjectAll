@@ -150,12 +150,51 @@ export async function updateGroup(groupId, groupData) {
  */
 export async function deleteGroup(groupId) {
   try {
-    await apiClient.delete(`/Groups/${groupId}`);
+    // Backend'de grup silme endpoint'i kontrol ediliyor
+    // Swagger'da DELETE /api/Groups/{id} endpoint'i görünmüyor
+    // Eğer endpoint farklıysa burayı güncelleyin
+    const response = await apiClient.delete(`/Groups/${groupId}`);
+    return response.data;
   } catch (error) {
-    throw new ApiError(
-      error.response?.data?.message || 'Grup silinirken bir hata oluştu',
-      false
-    );
+    // Detaylı hata mesajı
+    let errorMessage = 'Grup silinirken bir hata oluştu';
+    
+    if (error.response) {
+      // Backend'den gelen hata mesajı
+      const backendError = error.response.data;
+      if (backendError?.message) {
+        errorMessage = backendError.message;
+      } else if (backendError?.error) {
+        errorMessage = backendError.error;
+      } else if (typeof backendError === 'string') {
+        errorMessage = backendError;
+      } else if (error.response.status === 404) {
+        errorMessage = 'Grup silme endpoint\'i bulunamadı. Backend\'de DELETE /api/Groups/{id} endpoint\'i tanımlı olmayabilir.';
+      } else if (error.response.status === 405) {
+        errorMessage = 'Grup silme metodu desteklenmiyor. Backend\'de DELETE endpoint\'i tanımlı değil.';
+      } else if (error.response.status === 400) {
+        errorMessage = 'Geçersiz grup ID';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.';
+      }
+    } else if (error.request) {
+      // İstek gönderildi ama yanıt alınamadı
+      errorMessage = 'Sunucuya bağlanılamadı. Lütfen bağlantınızı kontrol edin.';
+    } else {
+      // İstek hazırlanırken hata oluştu
+      errorMessage = error.message || 'Beklenmeyen bir hata oluştu';
+    }
+    
+    console.error('Grup silme hatası:', {
+      groupId,
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+      url: error.config?.url,
+      method: error.config?.method,
+      note: 'Backend\'de DELETE /api/Groups/{id} endpoint\'i olmayabilir. Swagger\'ı kontrol edin.'
+    });
+    
+    throw new ApiError(errorMessage, false);
   }
 }
 

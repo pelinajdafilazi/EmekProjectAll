@@ -80,6 +80,21 @@ function transformBackendToStudent(backendData) {
     photo = avatars[avatarIndex];
   }
 
+  // Anne bilgileri - /with-parents endpoint'inden gelen format
+  // Backend'de mother ve father objeleri direkt olarak geliyor
+  const motherName = backendData.mother 
+    ? `${backendData.mother.firstName || ''} ${backendData.mother.lastName || ''}`.trim()
+    : backendData.motherInfo 
+    ? `${backendData.motherInfo.firstName || ''} ${backendData.motherInfo.lastName || ''}`.trim()
+    : '';
+  
+  // Baba bilgileri
+  const fatherName = backendData.father
+    ? `${backendData.father.firstName || ''} ${backendData.father.lastName || ''}`.trim()
+    : backendData.fatherInfo
+    ? `${backendData.fatherInfo.firstName || ''} ${backendData.fatherInfo.lastName || ''}`.trim()
+    : '';
+
   return {
     id: studentId,
     name: fullName,
@@ -91,7 +106,43 @@ function transformBackendToStudent(backendData) {
     position: backendData.branch || '-',
     jerseyNumber: null,
     hasGroup: false,
-    // Backend'den gelen ek bilgiler
+    // Profil bilgileri
+    profile: {
+      tc: backendData.nationalId || '-',
+      school: backendData.schoolName || '-',
+      dob: formatDate(backendData.dateOfBirth) || '-',
+      grade: backendData.classNumber || '-', // Sınıf numarası
+      phone: backendData.phoneNumber || '-', // Sporcu cep telefonu
+      branch: backendData.branch || '-',
+      address: backendData.homeAddress || '-'
+    },
+    // Anne bilgileri - /with-parents endpoint'inden gelen format
+    parents: {
+      mother: {
+        name: motherName || '-',
+        tc: backendData.mother?.nationalId || backendData.motherInfo?.nationalId || '-',
+        occupation: backendData.mother?.occupation || backendData.motherInfo?.occupation || '-',
+        phone: backendData.mother?.phoneNumber || backendData.motherInfo?.phoneNumber || '-'
+      },
+      father: {
+        name: fatherName || '-',
+        tc: backendData.father?.nationalId || backendData.fatherInfo?.nationalId || '-',
+        occupation: backendData.father?.occupation || backendData.fatherInfo?.occupation || '-',
+        phone: backendData.father?.phoneNumber || backendData.fatherInfo?.phoneNumber || '-'
+      }
+    },
+    // Yakınlar (şimdilik boş, backend'de yok)
+    relatives: {
+      aunt: {
+        name: '-',
+        tc: '-'
+      },
+      uncle: {
+        name: '-',
+        tc: '-'
+      }
+    },
+    // Backend'den gelen ham veri
     _backendData: backendData
   };
 }
@@ -115,11 +166,12 @@ export const StudentService = {
   },
 
   /**
-   * ID'ye göre öğrenci getir
+   * ID'ye göre öğrenci getir (anne-baba bilgileriyle birlikte)
    */
   async getStudentById(id) {
     try {
-      const response = await apiClient.get(`/StudentPersonalInfo/${id}`);
+      // /with-parents endpoint'ini kullanarak anne-baba bilgilerini de al
+      const response = await apiClient.get(`/StudentPersonalInfo/${id}/with-parents`);
       return transformBackendToStudent(response.data);
     } catch (error) {
       if (error.response?.status === 404) {
@@ -127,6 +179,25 @@ export const StudentService = {
       }
       throw new ApiError(
         error.response?.data?.message || 'Öğrenci alınırken hata oluştu'
+      );
+    }
+  },
+
+  /**
+   * Öğrencinin yakınlarını getir
+   * @param {string|number} studentId - Öğrenci ID'si
+   * @returns {Promise<Array>} Yakın listesi
+   */
+  async getStudentRelatives(studentId) {
+    try {
+      const response = await apiClient.get(`/StudentRelatives/student/${studentId}`);
+      return response.data || [];
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return [];
+      }
+      throw new ApiError(
+        error.response?.data?.message || 'Yakınlar alınırken hata oluştu'
       );
     }
   }

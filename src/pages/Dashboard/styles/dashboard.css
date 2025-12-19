@@ -1123,6 +1123,29 @@
   cursor: not-allowed;
 }
 
+.group-info__delete-btn {
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.group-info__delete-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  background: #dc2626;
+}
+
+.group-info__delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .group-students {
   background: #ffffff;
   padding: 16px;

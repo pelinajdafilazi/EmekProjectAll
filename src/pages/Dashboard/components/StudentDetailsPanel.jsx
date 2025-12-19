@@ -116,6 +116,18 @@ function RelativesCard({ title, left, right }) {
               <div className="dash-rel__label">T.C. Kimlik No</div>
               <div className="dash-rel__value">{left?.tc || '—'}</div>
             </div>
+            {left?.phone && left.phone !== '-' && (
+              <div className="dash-rel__field">
+                <div className="dash-rel__label">Cep Tel No</div>
+                <div className="dash-rel__value">{left.phone}</div>
+              </div>
+            )}
+            {left?.occupation && left.occupation !== '-' && (
+              <div className="dash-rel__field">
+                <div className="dash-rel__label">Mesleği</div>
+                <div className="dash-rel__value">{left.occupation}</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -132,6 +144,18 @@ function RelativesCard({ title, left, right }) {
               <div className="dash-rel__label">T.C. Kimlik No</div>
               <div className="dash-rel__value">{right?.tc || '—'}</div>
             </div>
+            {right?.phone && right.phone !== '-' && (
+              <div className="dash-rel__field">
+                <div className="dash-rel__label">Cep Tel No</div>
+                <div className="dash-rel__value">{right.phone}</div>
+              </div>
+            )}
+            {right?.occupation && right.occupation !== '-' && (
+              <div className="dash-rel__field">
+                <div className="dash-rel__label">Mesleği</div>
+                <div className="dash-rel__value">{right.occupation}</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -139,8 +163,18 @@ function RelativesCard({ title, left, right }) {
   );
 }
 
-export default function StudentDetailsPanel({ student }) {
+export default function StudentDetailsPanel({ student, loading = false }) {
   const [paymentStatus, setPaymentStatus] = useState(0); // 0: grey (default), 1: green, 2: red
+  
+  if (loading) {
+    return (
+      <section className="dash-right">
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+          Yükleniyor...
+        </div>
+      </section>
+    );
+  }
   
   if (!student) {
     return (
