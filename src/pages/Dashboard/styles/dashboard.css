@@ -103,9 +103,26 @@
   grid-template-columns: 500px 1fr;
   gap: 200px;
   padding: 16px 24px;
-  height: calc(100vh - 70px);
+  height: calc(100vh - 110px);
   overflow: hidden;
   overflow-x: hidden;
+}
+
+/* Footer */
+.dash-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(30, 30, 30, 0.60);
+  z-index: 100;
 }
 
 /* Left Panel - Student List */

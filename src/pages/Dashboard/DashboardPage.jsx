@@ -200,6 +200,9 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+      <footer className="dash-footer">
+        © 2023 YOUREYE Tüm Hakları Saklıdır.
+      </footer>
     </div>
   );
 }
