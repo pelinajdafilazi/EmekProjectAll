@@ -1731,30 +1731,27 @@
 .dash-left__months {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4px 0px;
-  margin-bottom: 20px;
-}
-
-.dash-left__months-title {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  font-size: 18px;
-  color: #1E1E1E;
+  margin-bottom: 16px;
 }
 
 .dash-left__month-dropdown {
   background: transparent;
   border: none;
   cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
   font-size: 16px;
+  font-weight: 500;
   color: #5677FB;
-  padding: 4px 8px;
-  transition: opacity 0.2s;
+  padding: 0;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.02em;
 }
 
 .dash-left__month-dropdown:hover {
-  opacity: 0.7;
+  color: #4566e8;
 }
 
 /* Payment Status Badge */

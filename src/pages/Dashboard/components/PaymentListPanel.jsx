@@ -33,9 +33,8 @@ export default function PaymentListPanel({ students, selectedId, onSelect }) {
       </div>
 
       <div className="dash-left__months">
-        <div className="dash-left__months-title">Tüm Aylar</div>
         <button type="button" className="dash-left__month-dropdown">
-          <span>▼</span>
+          Tüm Aylar ▼
         </button>
       </div>
 
