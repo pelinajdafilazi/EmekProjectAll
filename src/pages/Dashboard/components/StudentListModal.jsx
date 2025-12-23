@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { X, Search, MoreVertical } from 'lucide-react';
 import * as GroupService from '../../../services/groupService';
 import { StudentService } from '../../../services/studentService';
+import { getStudentsWithoutLesson } from '../../../services/lessonService';
 
-export default function StudentListModal({ isOpen, onClose, onAssign }) {
-  const [activeTab, setActiveTab] = useState('unassigned');
+export default function StudentListModal({ isOpen, onClose, onAssign, lessonId = null }) {
+  const [activeTab, setActiveTab] = useState('without-lesson');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [students, setStudents] = useState([]);
@@ -25,22 +26,16 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
     setError(null);
     try {
       let data;
-      if (activeTab === 'unassigned') {
-        // Grupsuz sporcular - sadece grubu olmayan öğrenciler
+      if (activeTab === 'without-lesson') {
+        // Derse kayıtlı olmayan sporcular
         try {
-          data = await GroupService.getStudentsWithoutGroups();
-          // Eğer backend'den veri gelmediyse, tüm öğrencilerden grupsuz olanları filtrele
-          if (!data || data.length === 0) {
-            console.log('Grupsuz öğrenciler endpoint\'i boş döndü, tüm öğrencilerden filtreleme yapılıyor...');
-            const allStudents = await StudentService.getAllStudents();
-            // Grupsuz öğrencileri filtrele (hasGroup false olanlar)
-            data = allStudents.filter(student => !student.hasGroup);
-          }
-        } catch (groupError) {
-          console.warn('Grupsuz öğrenciler endpoint\'i hata verdi, alternatif yöntem deneniyor...', groupError);
-          // Alternatif: Tüm öğrencilerden grupsuz olanları filtrele
+          data = await getStudentsWithoutLesson(lessonId);
+          console.log('Derse kayıtlı olmayan öğrenciler:', data);
+        } catch (lessonError) {
+          console.warn('Derse kayıtlı olmayan öğrenciler endpoint\'i hata verdi:', lessonError);
+          // Alternatif: Tüm öğrencileri getir
           const allStudents = await StudentService.getAllStudents();
-          data = allStudents.filter(student => !student.hasGroup);
+          data = allStudents;
         }
       } else {
         // Tüm sporcular - hem gruplu hem grupsuz tüm öğrenciler
@@ -104,14 +99,14 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
             {/* Tabs */}
             <div className="student-modal__tabs">
               <button
-                className={`student-modal__tab ${activeTab === 'unassigned' ? 'student-modal__tab--active' : ''}`}
+                className={`student-modal__tab ${activeTab === 'without-lesson' ? 'student-modal__tab--active' : ''}`}
                 onClick={() => {
-                  setActiveTab('unassigned');
+                  setActiveTab('without-lesson');
                   setSelectedStudent(null);
                   setSearchQuery('');
                 }}
               >
-                Grupsuz Sporcular
+                Derse Kayıtlı Olmayan Sporcular
               </button>
               <button
                 className={`student-modal__tab ${activeTab === 'all' ? 'student-modal__tab--active' : ''}`}
@@ -137,7 +132,9 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
                 </div>
               ) : filteredStudents.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
-                  {activeTab === 'unassigned' ? 'Grupsuz öğrenci bulunamadı' : 'Öğrenci bulunamadı'}
+                  {activeTab === 'without-lesson' 
+                    ? 'Derse kayıtlı olmayan öğrenci bulunamadı' 
+                    : 'Öğrenci bulunamadı'}
                 </div>
               ) : (
                 filteredStudents.map((student) => {
@@ -223,7 +220,9 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
                 </div>
 
                 <div className="student-modal__status">
-                  {activeTab === 'unassigned' ? 'Mevcut Grubu Bulunmamaktadır' : 'Öğrenci Bilgileri'}
+                  {activeTab === 'without-lesson' 
+                    ? 'Mevcut Dersi Bulunmamaktadır' 
+                    : 'Öğrenci Bilgileri'}
                 </div>
 
                 <button 
