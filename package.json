@@ -21,10 +21,10 @@
     "react-webcam": "^7.2.0"
   },
   "scripts": {
-    "start": "react-scripts --max_old_space_size=4096 start",
-    "start:win": "set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "start:win": "set NODE_OPTIONS=--max-old-space-size=4096 && craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -44,5 +44,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@craco/craco": "^7.1.0"
   }
 }

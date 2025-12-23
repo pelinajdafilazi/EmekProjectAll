@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, MoreVertical } from 'lucide-react';
 import * as GroupService from '../../../services/groupService';
+import { StudentService } from '../../../services/studentService';
 
 export default function StudentListModal({ isOpen, onClose, onAssign }) {
   const [activeTab, setActiveTab] = useState('unassigned');
@@ -13,6 +14,8 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
   // Load students when modal opens
   useEffect(() => {
     if (isOpen) {
+      setSearchQuery('');
+      setSelectedStudent(null);
       loadStudents();
     }
   }, [isOpen, activeTab]);
@@ -23,9 +26,25 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
     try {
       let data;
       if (activeTab === 'unassigned') {
-        data = await GroupService.getStudentsWithoutGroups();
+        // Grupsuz sporcular - sadece grubu olmayan öğrenciler
+        try {
+          data = await GroupService.getStudentsWithoutGroups();
+          // Eğer backend'den veri gelmediyse, tüm öğrencilerden grupsuz olanları filtrele
+          if (!data || data.length === 0) {
+            console.log('Grupsuz öğrenciler endpoint\'i boş döndü, tüm öğrencilerden filtreleme yapılıyor...');
+            const allStudents = await StudentService.getAllStudents();
+            // Grupsuz öğrencileri filtrele (hasGroup false olanlar)
+            data = allStudents.filter(student => !student.hasGroup);
+          }
+        } catch (groupError) {
+          console.warn('Grupsuz öğrenciler endpoint\'i hata verdi, alternatif yöntem deneniyor...', groupError);
+          // Alternatif: Tüm öğrencilerden grupsuz olanları filtrele
+          const allStudents = await StudentService.getAllStudents();
+          data = allStudents.filter(student => !student.hasGroup);
+        }
       } else {
-        data = await GroupService.getAllStudents();
+        // Tüm sporcular - hem gruplu hem grupsuz tüm öğrenciler
+        data = await StudentService.getAllStudents();
       }
       setStudents(data || []);
     } catch (err) {
@@ -89,6 +108,7 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
                 onClick={() => {
                   setActiveTab('unassigned');
                   setSelectedStudent(null);
+                  setSearchQuery('');
                 }}
               >
                 Grupsuz Sporcular
@@ -98,6 +118,7 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
                 onClick={() => {
                   setActiveTab('all');
                   setSelectedStudent(null);
+                  setSearchQuery('');
                 }}
               >
                 Tüm Sporcular
@@ -120,9 +141,13 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
                 </div>
               ) : (
                 filteredStudents.map((student) => {
-                  const studentName = student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim();
-                  const studentPhoto = student.photo || student.photoUrl || '/avatars/student-1.svg';
-                  const studentAge = student.age || (student.dateOfBirth ? new Date().getFullYear() - new Date(student.dateOfBirth).getFullYear() : '-');
+                  // Transform edilmiş öğrenci verilerini kullan
+                  const studentName = student.name || 'İsimsiz Öğrenci';
+                  const studentPhoto = student.photo || '/avatars/student-1.svg';
+                  const studentAge = student.age !== '-' ? student.age : '-';
+                  const studentBirthDate = student.birthDate !== '-' ? student.birthDate : '-';
+                  const studentBranch = student.team || student.branch || '-';
+                  const studentAttendance = student.attendance !== undefined ? student.attendance : '-';
                   
                   return (
                     <button
@@ -136,12 +161,12 @@ export default function StudentListModal({ isOpen, onClose, onAssign }) {
                       <div className="student-modal__row-name">{studentName}</div>
                       <div className="student-modal__row-meta">{studentAge}</div>
                       <div className="student-modal__row-meta student-modal__row-meta--wide">
-                        {student.team || student.branch || '-'}
+                        {studentBranch}
                       </div>
                       <div className="student-modal__row-meta">
-                        {student.birthDate || (student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('tr-TR') : '-')}
+                        {studentBirthDate}
                       </div>
-                      <div className="student-modal__row-meta">{student.attendance || '-'}</div>
+                      <div className="student-modal__row-meta">{studentAttendance}</div>
                       <div className="student-modal__row-menu">
                         <MoreVertical style={{ width: '16px', height: '16px', color: '#5677fb' }} />
                       </div>

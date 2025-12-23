@@ -182,9 +182,13 @@ const RegistrationForm = forwardRef((props, ref) => {
         createdAt: state.formData.createdAt || new Date().toISOString()
       });
       
-      // Success - trigger reload in dashboard (using localStorage event)
+      // Success - trigger reload in dashboard (using custom event for same-tab and storage event for cross-tab)
+      const event = new CustomEvent('studentCreated', { detail: { timestamp: Date.now() } });
+      window.dispatchEvent(event);
+      
+      // Also trigger storage event for cross-tab communication
       localStorage.setItem('student_created', Date.now().toString());
-      localStorage.removeItem('student_created'); // Trigger event
+      localStorage.removeItem('student_created');
       
       alert(result.message || 'Kayıt başarıyla oluşturuldu!');
     } catch (error) {

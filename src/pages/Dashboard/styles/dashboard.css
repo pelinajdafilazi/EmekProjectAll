@@ -245,11 +245,23 @@
 .dash-left__group-tabs {
   display: flex;
   gap: 20px;
-  width: 561px;
+  width: 100%;
+  max-width: 561px;
   height: 37px;
   align-items: center;
   margin-bottom: 4px;
   flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.dash-left__group-tabs::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .dash-left__tab {
@@ -1187,6 +1199,29 @@
 }
 
 .group-info__cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.group-info__delete-btn {
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.group-info__delete-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  background: #dc2626;
+}
+
+.group-info__delete-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

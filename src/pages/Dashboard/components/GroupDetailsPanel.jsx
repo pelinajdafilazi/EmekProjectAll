@@ -136,6 +136,25 @@ export default function GroupDetailsPanel({ group, students }) {
     });
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`"${group.name}" grubunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+      return;
+    }
+
+    setError(null);
+    setIsSaving(true);
+    try {
+      await actions.deleteGroup(group.id);
+      // Silme başarılı - grup zaten context'te kaldırıldı
+      setIsSaving(false);
+    } catch (err) {
+      console.error('Grup silme hatası:', err);
+      setError(err.message || 'Grup silinirken bir hata oluştu');
+      setIsSaving(false);
+    }
+  };
+
+
   if (!group) {
     return (
       <section className="dash-right">
@@ -234,6 +253,14 @@ export default function GroupDetailsPanel({ group, students }) {
               >
                 İptal
               </button>
+              <button 
+                type="button" 
+                className="group-info__delete-btn" 
+                onClick={handleDelete}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Siliniyor...' : 'Grubu Sil'}
+              </button>
             </div>
           ) : (
             <button type="button" className="group-info__edit-btn" onClick={handleEdit}>
@@ -245,24 +272,52 @@ export default function GroupDetailsPanel({ group, students }) {
         <div className="group-students">
           <h2 className="group-students__title">Öğrenci Listesi</h2>
           <div className="group-students__list">
-            {students.map((student) => (
-              <div key={student.id} className="group-student-row">
-                <div className="group-student-row__avatar">
-                  <img src={student.photo} alt={student.name} />
+            {students.map((student) => {
+              // Öğrenci bilgilerini güvenli şekilde al - tüm olası alan adlarını kontrol et
+              // Backend'den gelen _backendData içindeki studentFirstName ve studentLastName'i de kontrol et
+              const backendData = student?._backendData || {};
+              const studentName = student?.name || 
+                                  (student?.firstName && student?.lastName ? `${student.firstName} ${student.lastName}`.trim() : '') ||
+                                  (backendData.studentFirstName && backendData.studentLastName ? `${backendData.studentFirstName} ${backendData.studentLastName}`.trim() : '') ||
+                                  student?.fullName ||
+                                  (student?.student?.name) ||
+                                  (student?.student?.firstName && student?.student?.lastName ? `${student.student.firstName} ${student.student.lastName}`.trim() : '') ||
+                                  'İsimsiz Öğrenci';
+              
+              const studentPhoto = student?.photo || 
+                                  student?.photoUrl || 
+                                  student?.student?.photo ||
+                                  '/avatars/student-1.svg';
+              
+              const studentAge = student?.age !== undefined && student?.age !== '-' ? student.age : '-';
+              const studentTeam = student?.team || student?.branch || student?.student?.branch || '-';
+              const studentBirthDate = student?.birthDate !== undefined && student?.birthDate !== '-' ? student.birthDate : '-';
+              const studentAttendance = student?.attendance !== undefined ? student.attendance : '-';
+              
+              // Debug: Öğrenci objesini console'a yazdır
+              if (!student?.name || student?.name === 'İsimsiz Öğrenci') {
+                console.log('Student object without name:', student);
+              }
+              
+              return (
+                <div key={student.id || student.studentId || student.student?.id || Math.random()} className="group-student-row">
+                  <div className="group-student-row__avatar">
+                    <img src={studentPhoto} alt={studentName} />
+                  </div>
+                  <div className="group-student-row__name">{studentName}</div>
+                  <div className="group-student-row__meta">{studentAge}</div>
+                  <div className="group-student-row__meta group-student-row__meta--wide">
+                    {studentTeam}
+                  </div>
+                  <div className="group-student-row__meta">{studentBirthDate}</div>
+                  <div className="group-student-row__meta">{studentAttendance}</div>
+                  <div className="group-student-row__menu">
+                    <MoreVertical size={16} strokeWidth={2.5} />
+                  </div>
+                  <div className="group-student-row__indicator" />
                 </div>
-                <div className="group-student-row__name">{student.name}</div>
-                <div className="group-student-row__meta">{student.age}</div>
-                <div className="group-student-row__meta group-student-row__meta--wide">
-                  {student.team}
-                </div>
-                <div className="group-student-row__meta">{student.birthDate}</div>
-                <div className="group-student-row__meta">{student.attendance}</div>
-                <div className="group-student-row__menu">
-                  <MoreVertical size={16} strokeWidth={2.5} />
-                </div>
-                <div className="group-student-row__indicator" />
-              </div>
-            ))}
+              );
+            })}
           </div>
           <button 
             type="button" 

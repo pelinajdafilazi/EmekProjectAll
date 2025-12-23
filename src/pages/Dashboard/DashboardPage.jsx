@@ -33,6 +33,8 @@ export default function DashboardPage() {
   const [students, setStudents] = useState([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState(null);
+  const [selectedStudentDetails, setSelectedStudentDetails] = useState(null);
+  const [studentDetailsLoading, setStudentDetailsLoading] = useState(false);
 
   // Load students from backend
   const loadStudents = async () => {
@@ -62,30 +64,80 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView]);
 
-  // Listen for storage event to reload when form is submitted (from another tab/window)
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'student_created' && activeView === 'Öğrenciler') {
-        loadStudents();
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [activeView]);
-
-  // Check for student creation in same tab (using a custom event or polling)
+  // Listen for student creation events (both same-tab custom event and cross-tab storage event)
   useEffect(() => {
     if (activeView === 'Öğrenciler') {
-      // Listen for focus event to reload when returning to tab
-      const handleFocus = () => {
+      // Custom event for same-tab communication
+      const handleStudentCreated = () => {
         loadStudents();
       };
-      window.addEventListener('focus', handleFocus);
-      return () => window.removeEventListener('focus', handleFocus);
+      
+      // Storage event for cross-tab communication
+      const handleStorageChange = (e) => {
+        if (e.key === 'student_created') {
+          loadStudents();
+        }
+      };
+      
+      window.addEventListener('studentCreated', handleStudentCreated);
+      window.addEventListener('storage', handleStorageChange);
+      
+      return () => {
+        window.removeEventListener('studentCreated', handleStudentCreated);
+        window.removeEventListener('storage', handleStorageChange);
+      };
     }
   }, [activeView]);
 
-  const selectedStudent = students.find(s => s.id === selectedStudentId) || null;
+  // Load selected student details from backend (with parents and relatives)
+  useEffect(() => {
+    if (activeView === 'Öğrenciler' && selectedStudentId) {
+      setStudentDetailsLoading(true);
+      
+      // Öğrenci bilgilerini ve yakınlarını paralel olarak çek
+      Promise.all([
+        StudentService.getStudentById(selectedStudentId),
+        StudentService.getStudentRelatives(selectedStudentId).catch(() => []) // Hata durumunda boş array döndür
+      ])
+        .then(([student, relatives]) => {
+          // Yakınları student objesine ekle (array olarak)
+          if (student) {
+            student.relatives = transformRelatives(relatives);
+          }
+          setSelectedStudentDetails(student);
+        })
+        .catch(error => {
+          console.error('Öğrenci detayları yüklenirken hata:', error);
+          // Hata durumunda listeden bulunan öğrenciyi kullan
+          const studentFromList = students.find(s => s.id === selectedStudentId);
+          setSelectedStudentDetails(studentFromList || null);
+        })
+        .finally(() => {
+          setStudentDetailsLoading(false);
+        });
+    } else {
+      setSelectedStudentDetails(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView, selectedStudentId]);
+
+  // Yakınları frontend formatına dönüştür
+  const transformRelatives = (relatives) => {
+    if (!relatives || relatives.length === 0) {
+      return [];
+    }
+
+    // Tüm yakınları dönüştür
+    return relatives.map(relative => ({
+      relationType: relative.relationType || '-',
+      name: `${relative.firstName || ''} ${relative.lastName || ''}`.trim() || '-',
+      tc: relative.nationalId || '-',
+      phone: relative.phoneNumber || '-',
+      occupation: relative.occupation || '-'
+    }));
+  };
+
+  const selectedStudent = selectedStudentDetails || students.find(s => s.id === selectedStudentId) || null;
   const selectedGroup = groupState.groups.find(g => g.id === selectedGroupId);
   const groupStudents = selectedGroupId ? (groupState.students[selectedGroupId] || []) : [];
   const selectedLesson = mockLessonDetails[selectedLessonId] || null;
@@ -116,6 +168,23 @@ export default function DashboardPage() {
     }
   }, [activeView, groupState.groups, selectedGroupId, groupActions]);
 
+  // Update selectedGroupId when selected group is deleted
+  useEffect(() => {
+    if (activeView === 'Gruplar' && selectedGroupId) {
+      const groupExists = groupState.groups.find(g => g.id === selectedGroupId);
+      if (!groupExists) {
+        // Silinen grup seçili grup ise, ilk grubu seç veya null yap
+        if (groupState.groups.length > 0) {
+          const firstGroup = groupState.groups[0];
+          setSelectedGroupId(firstGroup.id);
+          groupActions.selectGroup(firstGroup);
+        } else {
+          setSelectedGroupId(null);
+        }
+      }
+    }
+  }, [activeView, groupState.groups, selectedGroupId, groupActions]);
+
   const handleSelectGroup = (groupId) => {
     setSelectedGroupId(groupId);
     const group = groupState.groups.find(g => g.id === groupId);
@@ -139,8 +208,9 @@ export default function DashboardPage() {
               selectedId={selectedStudentId}
               onSelect={setSelectedStudentId}
               loading={studentsLoading}
+              groups={groupState.groups}
             />
-            <StudentDetailsPanel student={selectedStudent} />
+            <StudentDetailsPanel student={selectedStudent} loading={studentDetailsLoading} />
           </>
         )}
         {activeView === 'Gruplar' && (

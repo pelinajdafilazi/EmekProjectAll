@@ -100,47 +100,75 @@ function ParentsCard({ mother, father }) {
   );
 }
 
-function RelativesCard({ title, left, right }) {
+function RelativesCard({ title, relatives = [] }) {
+  if (!relatives || relatives.length === 0) {
+    return (
+      <div className="dash-rel">
+        <div className="dash-rel__title">{title}</div>
+        <div className="dash-rel__cols">
+          <div className="dash-rel__col">
+            <div className="dash-rel__header">Yakın Bilgisi Yok</div>
+            <div className="dash-rel__body">
+              <div className="dash-rel__field">
+                <div className="dash-rel__value" style={{ gridColumn: '1 / -1', justifyContent: 'center', padding: '20px' }}>
+                  Kayıtlı yakın bilgisi bulunmamaktadır.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dash-rel">
       <div className="dash-rel__title">{title}</div>
-      <div className="dash-rel__cols">
-        <div className="dash-rel__col">
-          <div className="dash-rel__header">{left?.title || 'Teyze Bilgileri'}</div>
-          <div className="dash-rel__body">
-            <div className="dash-rel__field">
-              <div className="dash-rel__label">Ad Soyad</div>
-              <div className="dash-rel__value">{left?.name || '—'}</div>
-            </div>
-            <div className="dash-rel__field">
-              <div className="dash-rel__label">T.C. Kimlik No</div>
-              <div className="dash-rel__value">{left?.tc || '—'}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="dash-rel__divider" />
-
-        <div className="dash-rel__col">
-          <div className="dash-rel__header">{right?.title || 'Amca Bilgileri'}</div>
-          <div className="dash-rel__body">
-            <div className="dash-rel__field">
-              <div className="dash-rel__label">Ad Soyad</div>
-              <div className="dash-rel__value">{right?.name || '—'}</div>
-            </div>
-            <div className="dash-rel__field">
-              <div className="dash-rel__label">T.C. Kimlik No</div>
-              <div className="dash-rel__value">{right?.tc || '—'}</div>
+      <div className="dash-rel__cols" style={{ flexWrap: 'wrap', gap: '8px' }}>
+        {relatives.map((relative, index) => (
+          <div key={index} className="dash-rel__col">
+            <div className="dash-rel__header">{relative.relationType || `Yakın ${index + 1}`}</div>
+            <div className="dash-rel__body">
+              <div className="dash-rel__field">
+                <div className="dash-rel__label">Ad Soyad</div>
+                <div className="dash-rel__value">{relative.name || '—'}</div>
+              </div>
+              <div className="dash-rel__field">
+                <div className="dash-rel__label">T.C. Kimlik No</div>
+                <div className="dash-rel__value">{relative.tc || '—'}</div>
+              </div>
+              {relative.phone && relative.phone !== '-' && (
+                <div className="dash-rel__field">
+                  <div className="dash-rel__label">Cep Tel No</div>
+                  <div className="dash-rel__value">{relative.phone}</div>
+                </div>
+              )}
+              {relative.occupation && relative.occupation !== '-' && (
+                <div className="dash-rel__field">
+                  <div className="dash-rel__label">Mesleği</div>
+                  <div className="dash-rel__value">{relative.occupation}</div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
-export default function StudentDetailsPanel({ student }) {
+export default function StudentDetailsPanel({ student, loading = false }) {
   const [paymentStatus, setPaymentStatus] = useState(0); // 0: grey (default), 1: green, 2: red
+  
+  if (loading) {
+    return (
+      <section className="dash-right">
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+          Yükleniyor...
+        </div>
+      </section>
+    );
+  }
   
   if (!student) {
     return (
@@ -155,7 +183,7 @@ export default function StudentDetailsPanel({ student }) {
   const name = student?.name || '—';
   const photo = student?.photo || '/avatars/profile-large.svg';
   const parents = student?.parents || {};
-  const relatives = student?.relatives || {};
+  const relatives = Array.isArray(student?.relatives) ? student.relatives : [];
   const training = student?.trainingParticipation ?? 60;
 
   const handlePaymentToggle = () => {
@@ -182,7 +210,7 @@ export default function StudentDetailsPanel({ student }) {
 
       <ParentsCard mother={parents.mother} father={parents.father} />
 
-      <RelativesCard title="Yakın Listesi" left={relatives.aunt} right={relatives.uncle} />
+      <RelativesCard title="Yakın Listesi" relatives={relatives} />
 
       <div className="dash-bottom">
         <div className="dash-attendance">
