@@ -72,6 +72,10 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeView === 'Öğrenciler') {
       loadStudents();
+      // Grupları da yükle (kategori filtreleme için)
+      if (groupState.groups.length === 0) {
+        groupActions.loadGroups();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView]);

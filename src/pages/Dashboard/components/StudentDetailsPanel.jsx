@@ -210,11 +210,13 @@ export default function StudentDetailsPanel({ student, loading = false }) {
 
       <ParentsCard mother={parents.mother} father={parents.father} />
 
-      <RelativesCard title="Yakın Listesi" relatives={relatives} />
+      <div className="dash-scrollable">
+        <RelativesCard title="Yakın Listesi" relatives={relatives} />
+      </div>
 
       <div className="dash-bottom">
         <div className="dash-attendance">
-          <div className="dash-attendance__bar-wrapper" style={{ position: 'absolute', left: '2px', top: '-26px' }}>
+          <div className="dash-attendance__bar-wrapper">
             <div className="dash-attendance__label">Antrenman Katılımı %{training}</div>
             <div className="dash-attendance__bar-container">
               <div className="dash-attendance__bar">
@@ -225,7 +227,7 @@ export default function StudentDetailsPanel({ student, loading = false }) {
           </div>
         </div>
 
-        <button type="button" className={getPaymentButtonClass()} onClick={handlePaymentToggle} style={{ position: 'absolute', left: '1305px', top: '692px' }}>
+        <button type="button" className={getPaymentButtonClass()} onClick={handlePaymentToggle}>
           Ödeme Alındı
         </button>
       </div>

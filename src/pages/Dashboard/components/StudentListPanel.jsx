@@ -13,11 +13,13 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
   const [selectedGroupFilter, setSelectedGroupFilter] = useState(null); // null = Tüm Grup
   const [filteredStudents, setFilteredStudents] = useState(students);
   const [groupStudentsMap, setGroupStudentsMap] = useState(new Map()); // Grup ID -> Öğrenci ID'leri
+  const [studentGroupMap, setStudentGroupMap] = useState(new Map()); // Öğrenci ID -> Grup adı
 
   // Gruplardaki öğrencileri yükle
   useEffect(() => {
     const loadGroupStudents = async () => {
-      const map = new Map();
+      const groupToStudentsMap = new Map(); // Grup ID -> Öğrenci ID'leri Set
+      const studentToGroupMap = new Map(); // Öğrenci ID -> Grup adı
       
       for (const group of groups) {
         try {
@@ -25,26 +27,36 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
           // Öğrenci ID'lerini Set'e ekle (hem id hem de nationalId'yi kontrol et)
           const studentIds = new Set();
           groupStudents.forEach(student => {
-            if (student.id) {
-              studentIds.add(String(student.id));
+            const studentId = student.id || student._backendData?.id;
+            const studentNationalId = student.profile?.tc || student._backendData?.nationalId;
+            
+            if (studentId) {
+              studentIds.add(String(studentId));
+              // Öğrenci ID -> Grup adı mapping'i oluştur
+              studentToGroupMap.set(String(studentId), group.name);
             }
-            if (student.profile?.tc && student.profile.tc !== '-') {
-              studentIds.add(String(student.profile.tc));
+            if (studentNationalId && studentNationalId !== '-') {
+              studentIds.add(String(studentNationalId));
+              // National ID -> Grup adı mapping'i oluştur
+              studentToGroupMap.set(String(studentNationalId), group.name);
             }
             if (student._backendData?.id) {
               studentIds.add(String(student._backendData.id));
+              studentToGroupMap.set(String(student._backendData.id), group.name);
             }
             if (student._backendData?.nationalId) {
               studentIds.add(String(student._backendData.nationalId));
+              studentToGroupMap.set(String(student._backendData.nationalId), group.name);
             }
           });
-          map.set(group.id, studentIds);
+          groupToStudentsMap.set(group.id, studentIds);
         } catch (error) {
           console.error(`Grup ${group.id} öğrencileri yüklenirken hata:`, error);
         }
       }
       
-      setGroupStudentsMap(map);
+      setGroupStudentsMap(groupToStudentsMap);
+      setStudentGroupMap(studentToGroupMap);
     };
 
     if (groups.length > 0) {
@@ -115,6 +127,15 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
       <div className="dash-list" role="list">
         {filteredStudents.map((s) => {
           const active = s.id === selectedId;
+          // Öğrencinin hangi grupta olduğunu bul
+          const studentId = String(s.id || '');
+          const studentNationalId = String(s.profile?.tc || s._backendData?.nationalId || '');
+          const studentGroup = studentGroupMap.get(studentId) || 
+                              (studentNationalId !== '' ? studentGroupMap.get(studentNationalId) : null) ||
+                              '-';
+          // Branş bilgisini al
+          const studentBranch = s.team || s.branch || s.profile?.branch || s._backendData?.branch || '-';
+          
           return (
             <button
               key={s.id}
@@ -124,10 +145,9 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
             >
               <StudentAvatar photo={s.photo} name={s.name} />
               <div className="dash-row__name">{s.name}</div>
-              <div className="dash-row__meta">{s.age}</div>
-              <div className="dash-row__meta dash-row__meta--wide">{s.team}</div>
-              <div className="dash-row__meta">{s.birthDate}</div>
-              <div className="dash-row__meta dash-row__meta--attendance">{s.attendance}</div>
+              <div className="dash-row__meta">{studentGroup}</div>
+              <div className="dash-row__meta">{studentBranch}</div>
+              <div className="dash-row__meta">{s.age || '-'}</div>
               <div className="dash-row__indicator" aria-hidden="true" />
             </button>
           );
