@@ -111,7 +111,7 @@ function transformBackendToStudent(backendData) {
       tc: backendData.nationalId || '-',
       school: backendData.schoolName || '-',
       dob: formatDate(backendData.dateOfBirth) || '-',
-      grade: backendData.classNumber || '-', // Sınıf numarası
+      grade: backendData.class || backendData.classNumber || '-', // Sınıf numarası (backend'de "class" olarak geliyor)
       phone: backendData.phoneNumber || '-', // Sporcu cep telefonu
       branch: backendData.branch || '-',
       address: backendData.homeAddress || '-'

@@ -46,7 +46,7 @@ function transformToBackendFormat(formData) {
       homeAddress: sporcu.evAdresi,
       branch: sporcu.bransi,
       phoneNumber: sporcu.sporcuCep || null, // Sporcu cep telefonu
-      classNumber: sporcu.sinifNo || null, // Sınıf numarası
+      class: sporcu.sinifNo || null, // Sınıf numarası (backend'de "class" olarak bekleniyor)
       photo: formData.photo || null, // Fotoğrafı ekle
       motherInfo: {
         firstName: anneName.firstName,
@@ -79,7 +79,7 @@ function transformToBackendFormat(formData) {
         adiSoyadi: `${backendData.firstName || ''} ${backendData.lastName || ''}`.trim(),
         dogumTarihi: backendData.dateOfBirth ? backendData.dateOfBirth.split('T')[0] : '',
         okulu: backendData.schoolName || '',
-        sinifNo: backendData.classNumber || '',
+        sinifNo: backendData.class || backendData.classNumber || '',
         sporcuCep: backendData.phoneNumber || '',
         evAdresi: backendData.homeAddress || ''
       },
@@ -103,6 +103,35 @@ function transformToBackendFormat(formData) {
   }
   
   /**
+   * Yakın bilgisini backend formatına dönüştürür
+   * @param {Object} yakin - Yakın bilgisi (formData formatında)
+   * @param {string} studentNationalId - Öğrencinin TC kimlik numarası
+   */
+  function transformYakinToBackendFormat(yakin, studentNationalId) {
+    // Adı Soyadı'nı firstName ve lastName'e ayır
+    const parseFullName = (fullName) => {
+      if (!fullName) return { firstName: '', lastName: '' };
+      const parts = fullName.trim().split(' ');
+      const lastName = parts.pop() || '';
+      const firstName = parts.join(' ') || '';
+      return { firstName, lastName };
+    };
+
+    const name = parseFullName(yakin.adiSoyadi);
+
+    return {
+      studentNationalId: studentNationalId,
+      relationType: yakin.yakinlikDerecesi || '',
+      firstName: name.firstName,
+      lastName: name.lastName,
+      nationalId: yakin.tcKimlikNo || '',
+      phoneNumber: yakin.cepTel || '',
+      email: '', // Email alanı boş string olarak gönderiliyor
+      occupation: yakin.meslegi || ''
+    };
+  }
+
+  /**
    * Form Data Service - Backend API İşlemleri
    */
   export const FormService = {
@@ -110,6 +139,26 @@ function transformToBackendFormat(formData) {
       try {
         const backendData = transformToBackendFormat(formData);
         const response = await apiClient.post('/StudentPersonalInfo', backendData);
+        const studentId = response.data?.id || response.data?.studentId;
+        // Öğrencinin TC kimlik numarasını al (response'dan veya formData'dan)
+        const studentNationalId = response.data?.nationalId || formData.sporcu?.tcKimlikNo || '';
+
+        // Yakın bilgilerini kaydet
+        if (studentNationalId && formData.yakinlar && formData.yakinlar.length > 0) {
+          const yakinPromises = formData.yakinlar
+            .filter(yakin => yakin.adiSoyadi && yakin.adiSoyadi.trim() !== '') // Boş yakınları atla
+            .map(yakin => {
+              const yakinData = transformYakinToBackendFormat(yakin, studentNationalId);
+              return apiClient.post('/StudentRelatives', yakinData).catch(error => {
+                console.error('Yakın bilgisi kaydedilirken hata:', error);
+                // Bir yakın kaydedilemezse diğerlerini kaydetmeye devam et
+                return null;
+              });
+            });
+
+          await Promise.all(yakinPromises);
+        }
+
         return {
           success: true,
           data: response.data,
@@ -151,6 +200,44 @@ function transformToBackendFormat(formData) {
       try {
         const backendData = transformToBackendFormat(formData);
         const response = await apiClient.put(`/StudentPersonalInfo/${id}`, backendData);
+        const studentId = id;
+        // Öğrencinin TC kimlik numarasını al (response'dan veya formData'dan)
+        const studentNationalId = response.data?.nationalId || formData.sporcu?.tcKimlikNo || '';
+
+        // Mevcut yakın bilgilerini sil ve yenilerini kaydet
+        if (studentNationalId && formData.yakinlar) {
+          try {
+            // Mevcut yakınları getir (studentId ile)
+            const existingRelatives = await apiClient.get(`/StudentRelatives/student/${studentId}`).catch(() => ({ data: [] }));
+            
+            // Mevcut yakınları sil
+            if (existingRelatives.data && existingRelatives.data.length > 0) {
+              const deletePromises = existingRelatives.data.map(relative => 
+                apiClient.delete(`/StudentRelatives/${relative.id}`).catch(() => null)
+              );
+              await Promise.all(deletePromises);
+            }
+
+            // Yeni yakın bilgilerini kaydet
+            if (formData.yakinlar.length > 0) {
+              const yakinPromises = formData.yakinlar
+                .filter(yakin => yakin.adiSoyadi && yakin.adiSoyadi.trim() !== '') // Boş yakınları atla
+                .map(yakin => {
+                  const yakinData = transformYakinToBackendFormat(yakin, studentNationalId);
+                  return apiClient.post('/StudentRelatives', yakinData).catch(error => {
+                    console.error('Yakın bilgisi kaydedilirken hata:', error);
+                    return null;
+                  });
+                });
+
+              await Promise.all(yakinPromises);
+            }
+          } catch (error) {
+            console.error('Yakın bilgileri güncellenirken hata:', error);
+            // Yakın bilgileri güncellenemezse ana kayıt güncellemesi başarılı olsa bile devam et
+          }
+        }
+
         return {
           success: true,
           data: response.data,

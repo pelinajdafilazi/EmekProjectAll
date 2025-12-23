@@ -99,7 +99,7 @@ export default function DashboardPage() {
         StudentService.getStudentRelatives(selectedStudentId).catch(() => []) // Hata durumunda boş array döndür
       ])
         .then(([student, relatives]) => {
-          // Yakınları student objesine ekle
+          // Yakınları student objesine ekle (array olarak)
           if (student) {
             student.relatives = transformRelatives(relatives);
           }
@@ -123,36 +123,17 @@ export default function DashboardPage() {
   // Yakınları frontend formatına dönüştür
   const transformRelatives = (relatives) => {
     if (!relatives || relatives.length === 0) {
-      return {
-        aunt: { name: '-', tc: '-', phone: '-', occupation: '-' },
-        uncle: { name: '-', tc: '-', phone: '-', occupation: '-' }
-      };
+      return [];
     }
 
-    // relationType'a göre yakınları ayır (Teyze, Amca, vs.)
-    const aunts = relatives.filter(r => 
-      r.relationType && (r.relationType.toLowerCase().includes('teyze') || r.relationType.toLowerCase().includes('hala'))
-    );
-    const uncles = relatives.filter(r => 
-      r.relationType && (r.relationType.toLowerCase().includes('amca') || r.relationType.toLowerCase().includes('dayı'))
-    );
-
-    // İlk teyze/amca bilgilerini al
-    const aunt = aunts.length > 0 ? {
-      name: `${aunts[0].firstName || ''} ${aunts[0].lastName || ''}`.trim() || '-',
-      tc: aunts[0].nationalId || '-',
-      phone: aunts[0].phoneNumber || '-',
-      occupation: aunts[0].occupation || '-'
-    } : { name: '-', tc: '-', phone: '-', occupation: '-' };
-
-    const uncle = uncles.length > 0 ? {
-      name: `${uncles[0].firstName || ''} ${uncles[0].lastName || ''}`.trim() || '-',
-      tc: uncles[0].nationalId || '-',
-      phone: uncles[0].phoneNumber || '-',
-      occupation: uncles[0].occupation || '-'
-    } : { name: '-', tc: '-', phone: '-', occupation: '-' };
-
-    return { aunt, uncle };
+    // Tüm yakınları dönüştür
+    return relatives.map(relative => ({
+      relationType: relative.relationType || '-',
+      name: `${relative.firstName || ''} ${relative.lastName || ''}`.trim() || '-',
+      tc: relative.nationalId || '-',
+      phone: relative.phoneNumber || '-',
+      occupation: relative.occupation || '-'
+    }));
   };
 
   const selectedStudent = selectedStudentDetails || students.find(s => s.id === selectedStudentId) || null;
