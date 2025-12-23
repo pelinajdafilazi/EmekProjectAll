@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { MoreVertical } from 'lucide-react';
 import * as GroupService from '../../../services/groupService';
 
 function StudentAvatar({ photo, name }) {
@@ -129,9 +128,6 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
               <div className="dash-row__meta dash-row__meta--wide">{s.team}</div>
               <div className="dash-row__meta">{s.birthDate}</div>
               <div className="dash-row__meta dash-row__meta--attendance">{s.attendance}</div>
-              <div className="dash-row__menu">
-                <MoreVertical size={16} strokeWidth={2.5} />
-              </div>
               <div className="dash-row__indicator" aria-hidden="true" />
             </button>
           );

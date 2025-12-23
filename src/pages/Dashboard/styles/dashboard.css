@@ -100,8 +100,8 @@
 /* Layout body */
 .dash__body {
   display: grid;
-  grid-template-columns: 500px 1fr;
-  gap: 200px;
+  grid-template-columns: 760px 1fr;
+  gap: 40px;
   padding: 16px 24px;
   height: calc(100vh - 110px);
   overflow: hidden;
@@ -127,7 +127,7 @@
 
 /* Left Panel - Student List */
 .dash-left {
-  width: 582px;
+  width: 716px;
   height: 718px;
   padding-left: 100px;
   padding-right: 16px;
@@ -335,8 +335,8 @@
   width: 100%;
   position: relative;
   display: grid;
-  grid-template-columns: 36px 120px auto 16px;
-  gap: 6px;
+  grid-template-columns: 36px 140px 40px 100px 100px 60px;
+  gap: 12px;
   align-items: center;
   padding: 6px 12px;
   border: none;
