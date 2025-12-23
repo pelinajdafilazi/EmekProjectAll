@@ -204,6 +204,7 @@ export default function DashboardPage() {
               selectedId={selectedStudentId}
               onSelect={setSelectedStudentId}
               loading={studentsLoading}
+              groups={groupState.groups}
             />
             <StudentDetailsPanel student={selectedStudent} loading={studentDetailsLoading} />
           </>

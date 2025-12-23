@@ -200,11 +200,23 @@
 .dash-left__group-tabs {
   display: flex;
   gap: 20px;
-  width: 561px;
+  width: 100%;
+  max-width: 561px;
   height: 37px;
   align-items: center;
   margin-bottom: 24px;
   flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.dash-left__group-tabs::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .dash-left__tab {
