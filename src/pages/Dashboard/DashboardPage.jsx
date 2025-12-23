@@ -13,7 +13,8 @@ import AttendanceListPanel from './components/AttendanceListPanel';
 import AttendanceDetailsPanel from './components/AttendanceDetailsPanel';
 import { mockLessons, mockLessonDetails, mockLessonStudents } from '../../data/mockLessons';
 import { mockPaymentStudents, mockPaymentDetails } from '../../data/mockPayments';
-import { mockAttendanceLessons, mockAttendanceDetails, mockAttendanceStudents } from '../../data/mockAttendance';
+import { mockAttendanceLessonsByGroup, mockAttendanceStudentsByGroup } from '../../data/mockAttendance';
+import { mockGroups } from '../../data/mockGroups';
 import { useGroups } from '../../context/GroupContext';
 import { StudentService } from '../../services/studentService';
 
@@ -24,7 +25,7 @@ export default function DashboardPage() {
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [selectedLessonId, setSelectedLessonId] = useState('1');
   const [selectedPaymentStudentId, setSelectedPaymentStudentId] = useState('1');
-  const [selectedAttendanceLessonId, setSelectedAttendanceLessonId] = useState('1');
+  const [selectedAttendanceGroupId, setSelectedAttendanceGroupId] = useState('1');
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
   const [groupsLoaded, setGroupsLoaded] = useState(false);
   
@@ -90,8 +91,11 @@ export default function DashboardPage() {
   const selectedLesson = mockLessonDetails[selectedLessonId] || null;
   const lessonStudents = mockLessonStudents[selectedLessonId] || [];
   const selectedPaymentStudent = mockPaymentDetails[selectedPaymentStudentId] || null;
-  const selectedAttendanceLesson = mockAttendanceDetails[selectedAttendanceLessonId] || null;
-  const attendanceStudents = mockAttendanceStudents[selectedAttendanceLessonId] || [];
+  
+  // Attendance data based on selected group
+  const selectedAttendanceGroup = mockGroups.find(g => g.id === selectedAttendanceGroupId);
+  const selectedAttendanceLesson = mockAttendanceLessonsByGroup[selectedAttendanceGroupId] || null;
+  const attendanceStudents = mockAttendanceStudentsByGroup[selectedAttendanceGroupId] || [];
 
   // Load groups when Gruplar view is active (only once per view switch)
   useEffect(() => {
@@ -184,17 +188,21 @@ export default function DashboardPage() {
         {activeView === 'Yoklamalar' && (
           <>
             <AttendanceListPanel
-              lessons={mockAttendanceLessons}
-              selectedId={selectedAttendanceLessonId}
-              onSelect={setSelectedAttendanceLessonId}
+              groups={mockGroups}
+              selectedId={selectedAttendanceGroupId}
+              onSelect={setSelectedAttendanceGroupId}
             />
             <AttendanceDetailsPanel
+              group={selectedAttendanceGroup}
               lesson={selectedAttendanceLesson}
               students={attendanceStudents}
             />
           </>
         )}
       </div>
+      <footer className="dash-footer">
+        © 2023 YOUREYE Tüm Hakları Saklıdır.
+      </footer>
     </div>
   );
 }

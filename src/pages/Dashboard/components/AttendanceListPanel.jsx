@@ -1,51 +1,42 @@
-import React from 'react';
-import { MoreVertical } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search } from 'lucide-react';
+import GroupTable from './GroupTable';
+import { mockGroups } from '../../../data/mockGroups';
 
-export default function AttendanceListPanel({ lessons, selectedId, onSelect }) {
+export default function AttendanceListPanel({ groups, selectedId, onSelect }) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Use provided groups or fall back to mockGroups
+  const groupsToDisplay = groups || mockGroups;
+
+  // Filter groups based on search query
+  const filteredGroups = groupsToDisplay.filter(group =>
+    group.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <aside className="dash-left">
-      <h1 className="dash-left__title">Ders Listesi</h1>
+      <h1 className="dash-left__title">Grup Listesi</h1>
 
-      <div className="dash-left__groups">
-        <div className="dash-left__groups-title">Gruplar</div>
-        <div className="dash-left__group-tabs">
-          <button type="button" className="dash-left__tab dash-left__tab--active">
-            Tüm Grup
-          </button>
-          <button type="button" className="dash-left__tab">
-            Grup Örnek
-          </button>
-          <button type="button" className="dash-left__tab">
-            Grup Örnek 2
-          </button>
-          <button type="button" className="dash-left__tab">
-            Grup Örnek 3
-          </button>
+      <div className="dash-search-container dash-search-container--attendance">
+        <input
+          type="text"
+          className="dash-search-input dash-search-input--attendance"
+          placeholder="Grup Ara..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <div className="dash-search-icon dash-search-icon--attendance">
+          <Search size={20} strokeWidth={2} />
         </div>
       </div>
 
-      <div className="dash-list" role="list">
-        {lessons.map((lesson) => {
-          const active = lesson.id === selectedId;
-          return (
-            <button
-              key={lesson.id}
-              type="button"
-              className={`dash-row ${active ? 'dash-row--active' : ''}`}
-              onClick={() => onSelect?.(lesson.id)}
-            >
-              <div className="dash-row__name">{lesson.name}</div>
-              <div className="dash-row__meta dash-row__meta--wide">{lesson.group}</div>
-              <div className="dash-row__meta">{lesson.day}</div>
-              <div className="dash-row__meta dash-row__meta--attendance">{lesson.capacity}</div>
-              <div className="dash-row__menu">
-                <MoreVertical size={16} strokeWidth={2.5} />
-              </div>
-              <div className="dash-row__indicator" aria-hidden="true" />
-            </button>
-          );
-        })}
-      </div>
+      <GroupTable
+        groups={filteredGroups}
+        selectedId={selectedId}
+        onSelect={onSelect}
+        interactive={true}
+      />
     </aside>
   );
 }

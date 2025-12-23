@@ -11,7 +11,7 @@ function StudentAvatar({ photo, name }) {
 
 export default function PaymentListPanel({ students, selectedId, onSelect }) {
   return (
-    <aside className="dash-left">
+    <aside className="dash-left dash-left--payment">
       <h1 className="dash-left__title">Öğrenci Listesi</h1>
 
       <div className="dash-left__groups">
@@ -33,9 +33,8 @@ export default function PaymentListPanel({ students, selectedId, onSelect }) {
       </div>
 
       <div className="dash-left__months">
-        <div className="dash-left__months-title">Tüm Aylar</div>
         <button type="button" className="dash-left__month-dropdown">
-          <span>▼</span>
+          Tüm Aylar ▼
         </button>
       </div>
 

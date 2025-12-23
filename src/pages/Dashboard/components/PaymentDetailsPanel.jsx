@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import PaymentOperationsModal from './PaymentOperationsModal';
 
 function ProfileAvatar({ photo, name }) {
   return (
@@ -51,8 +52,13 @@ function InfoGrid({ profile }) {
   );
 }
 
-function PaymentTable({ payments }) {
-  const totalDebt = payments.reduce((sum, p) => sum + p.fee + p.equipment, 0);
+function PaymentTable({ payments, onOpenModal }) {
+  const totalDebt = payments.reduce((sum, p) => {
+    const total = p.fee + p.equipment;
+    const paid = p.paid || 0;
+    const debt = total - paid;
+    return sum + debt;
+  }, 0);
 
   return (
     <div className="payment-table">
@@ -60,28 +66,54 @@ function PaymentTable({ payments }) {
         <div className="payment-table__header">Ay / Yıl</div>
         <div className="payment-table__header">Ödeme Günü</div>
         <div className="payment-table__header">Ücret</div>
-        <div className="payment-table__header">Malzeme</div>
+        <div className="payment-table__header">Malzeme Ücreti</div>
+        <div className="payment-table__header">Yapılan Ödeme</div>
+        <div className="payment-table__header">Borç</div>
       </div>
       <div className="payment-table__body">
-        {payments.map((payment, index) => (
-          <div key={index} className="payment-table__row">
-            <div className="payment-table__cell">{payment.monthYear}</div>
-            <div className="payment-table__cell">{payment.paymentDate}</div>
-            <div className="payment-table__cell">{payment.fee.toLocaleString('tr-TR')}</div>
-            <div className="payment-table__cell">{payment.equipment.toLocaleString('tr-TR')}</div>
-          </div>
-        ))}
+        {payments.map((payment, index) => {
+          const total = payment.fee + payment.equipment;
+          const paid = payment.paid || 0;
+          const debt = total - paid;
+          const isUnpaid = debt > 0;
+
+          return (
+            <div key={index} className={`payment-table__row ${isUnpaid ? 'payment-table__row--unpaid' : ''}`}>
+              <div className="payment-table__cell">{payment.monthYear}</div>
+              <div className="payment-table__cell">{payment.paymentDate}</div>
+              <div className="payment-table__cell">{payment.fee.toLocaleString('tr-TR')},00</div>
+              <div className="payment-table__cell">{payment.equipment.toLocaleString('tr-TR')},00</div>
+              <div className="payment-table__cell">{paid.toLocaleString('tr-TR')},00</div>
+              <div className="payment-table__cell">{debt.toLocaleString('tr-TR')},00</div>
+            </div>
+          );
+        })}
       </div>
       <div className="payment-table__footer">
         <div className="payment-table__total">
-          Toplam Borç: <span className="payment-table__total-amount">{totalDebt.toLocaleString('tr-TR')} tl</span>
+          Toplam Borç: <span className="payment-table__total-amount">{totalDebt.toLocaleString('tr-TR')},00 tl</span>
         </div>
+        <button 
+          type="button" 
+          className="payment-action-btn" 
+          onClick={(e) => {
+            e.preventDefault();
+            console.log('Button clicked!');
+            onOpenModal();
+          }}
+        >
+          Ödeme İşlemleri
+        </button>
       </div>
     </div>
   );
 }
 
 export default function PaymentDetailsPanel({ student }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  console.log('PaymentDetailsPanel render, isModalOpen:', isModalOpen);
+
   if (!student) {
     return (
       <section className="dash-right">
@@ -97,21 +129,25 @@ export default function PaymentDetailsPanel({ student }) {
   const payments = student?.payments || [];
 
   return (
-    <section className="dash-right">
-      <div className="payment-header">Ödeme Bilgisi</div>
+    <>
+      <section className="dash-right dash-right--payment">
+        <div className="payment-header">Ödeme Bilgisi</div>
 
-      <div className="dash-top">
-        <ProfileAvatar photo={photo} name={name} />
-        <div className="dash-top__info">
-          <InfoGrid profile={student?.profile} />
+        <div className="dash-top">
+          <ProfileAvatar photo={photo} name={name} />
+          <div className="dash-top__info">
+            <InfoGrid profile={student?.profile} />
+          </div>
         </div>
-      </div>
 
-      <PaymentTable payments={payments} />
+        <PaymentTable payments={payments} onOpenModal={() => setIsModalOpen(true)} />
+      </section>
 
-      <button type="button" className="payment-action-btn">
-        Ödeme İşlemleri
-      </button>
-    </section>
+      <PaymentOperationsModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        student={student}
+      />
+    </>
   );
 }

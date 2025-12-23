@@ -76,49 +76,50 @@ export const mockPaymentDetails = {
         monthYear: 'Kasım 2026',
         paymentDate: '19.11.2026',
         fee: 5000.00,
-        equipment: 400.00
+        equipment: 500.00,
+        paid: 5500.00
       },
       {
         monthYear: 'Kasım 2026',
         paymentDate: '19.11.2026',
         fee: 5000.00,
-        equipment: 400.00
+        equipment: 900.00,
+        paid: 900.00
       },
       {
         monthYear: 'Kasım 2026',
         paymentDate: '19.11.2026',
         fee: 5000.00,
-        equipment: 400.00
+        equipment: 500.00,
+        paid: 5500.00
       },
       {
         monthYear: 'Kasım 2026',
         paymentDate: '19.11.2026',
         fee: 5000.00,
-        equipment: 400.00
+        equipment: 500.00,
+        paid: 5500.00
       },
       {
         monthYear: 'Kasım 2026',
         paymentDate: '19.11.2026',
         fee: 5000.00,
-        equipment: 400.00
+        equipment: 500.00,
+        paid: 500.00
       },
       {
         monthYear: 'Kasım 2026',
         paymentDate: '19.11.2026',
         fee: 5000.00,
-        equipment: 400.00
+        equipment: 500.00,
+        paid: 5500.00
       },
       {
         monthYear: 'Kasım 2026',
         paymentDate: '19.11.2026',
         fee: 5000.00,
-        equipment: 400.00
-      },
-      {
-        monthYear: 'Kasım 2026',
-        paymentDate: '19.11.2026',
-        fee: 5000.00,
-        equipment: 400.00
+        equipment: 500.00,
+        paid: 900.00
       }
     ]
   },
