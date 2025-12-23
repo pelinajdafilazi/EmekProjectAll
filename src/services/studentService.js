@@ -21,8 +21,10 @@ function getRandomAvatar() {
 
 /**
  * Backend StudentPersonalInfo formatından frontend student formatına dönüştürür
+ * @param {Object} backendData - Backend'den gelen öğrenci verisi
+ * @returns {Object} Frontend formatında öğrenci objesi
  */
-function transformBackendToStudent(backendData) {
+export function transformBackendToStudent(backendData) {
   // Yaş hesaplama
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return null;
@@ -45,6 +47,10 @@ function transformBackendToStudent(backendData) {
     if (!dateStr) return null;
     try {
       const date = new Date(dateStr);
+      // Geçersiz tarih kontrolü
+      if (isNaN(date.getTime())) {
+        return null;
+      }
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
@@ -54,13 +60,55 @@ function transformBackendToStudent(backendData) {
     }
   };
 
-  const firstName = backendData.firstName || '';
-  const lastName = backendData.lastName || '';
-  const fullName = `${firstName} ${lastName}`.trim() || 'İsimsiz Öğrenci';
-  const studentId = String(backendData.id || backendData.nationalId || Date.now());
+  // İç içe geçmiş student objesi varsa onu kullan
+  const studentData = backendData.student || backendData;
+  
+  // İsim bilgilerini al - farklı formatları kontrol et
+  // Önce direkt name alanını kontrol et
+  let name = studentData.name || backendData.name || studentData.fullName || backendData.fullName || '';
+  
+  // Eğer name yoksa firstName ve lastName'den oluştur
+  if (!name) {
+    const firstName = studentData.firstName || 
+                      backendData.firstName || 
+                      studentData.first_name || 
+                      backendData.first_name ||
+                      backendData.studentFirstName || // Backend'den gelen format
+                      '';
+    const lastName = studentData.lastName || 
+                     backendData.lastName || 
+                     studentData.last_name || 
+                     backendData.last_name ||
+                     backendData.studentLastName || // Backend'den gelen format
+                     '';
+    name = `${firstName} ${lastName}`.trim();
+  }
+  
+  // Son çare olarak "İsimsiz Öğrenci"
+  if (!name) {
+    name = 'İsimsiz Öğrenci';
+  }
+  
+  // ID'yi al - backend'den gelen farklı formatları kontrol et
+  const studentId = String(studentData.id || 
+                           backendData.id || 
+                           studentData.studentId || 
+                           backendData.studentId || 
+                           backendData.studentId || // Backend'den gelen format
+                           studentData.nationalId || 
+                           backendData.nationalId || 
+                           Date.now());
 
-  // Fotoğraf kontrolü
-  let photo = backendData.photo || backendData.photoUrl || backendData.photoBase64;
+  // Fotoğraf kontrolü - iç içe geçmiş objeleri de kontrol et
+  let photo = studentData.photo || 
+              backendData.photo || 
+              studentData.photoUrl || 
+              backendData.photoUrl || 
+              studentData.photoBase64 ||
+              backendData.photoBase64 ||
+              studentData.profileImageBase64 ||
+              backendData.profileImageBase64;
+              
   if (!photo || (typeof photo === 'string' && !photo.startsWith('data:') && !photo.startsWith('http') && !photo.startsWith('/'))) {
     // Fotoğraf yoksa ID'ye göre deterministik avatar seç
     const avatars = [
@@ -82,39 +130,39 @@ function transformBackendToStudent(backendData) {
 
   // Anne bilgileri - /with-parents endpoint'inden gelen format
   // Backend'de mother ve father objeleri direkt olarak geliyor
-  const motherName = backendData.mother 
-    ? `${backendData.mother.firstName || ''} ${backendData.mother.lastName || ''}`.trim()
-    : backendData.motherInfo 
-    ? `${backendData.motherInfo.firstName || ''} ${backendData.motherInfo.lastName || ''}`.trim()
+  const motherName = studentData.mother || backendData.mother
+    ? `${(studentData.mother || backendData.mother)?.firstName || ''} ${(studentData.mother || backendData.mother)?.lastName || ''}`.trim()
+    : studentData.motherInfo || backendData.motherInfo 
+    ? `${(studentData.motherInfo || backendData.motherInfo)?.firstName || ''} ${(studentData.motherInfo || backendData.motherInfo)?.lastName || ''}`.trim()
     : '';
   
   // Baba bilgileri
-  const fatherName = backendData.father
-    ? `${backendData.father.firstName || ''} ${backendData.father.lastName || ''}`.trim()
-    : backendData.fatherInfo
-    ? `${backendData.fatherInfo.firstName || ''} ${backendData.fatherInfo.lastName || ''}`.trim()
+  const fatherName = studentData.father || backendData.father
+    ? `${(studentData.father || backendData.father)?.firstName || ''} ${(studentData.father || backendData.father)?.lastName || ''}`.trim()
+    : studentData.fatherInfo || backendData.fatherInfo
+    ? `${(studentData.fatherInfo || backendData.fatherInfo)?.firstName || ''} ${(studentData.fatherInfo || backendData.fatherInfo)?.lastName || ''}`.trim()
     : '';
-
+  
   return {
     id: studentId,
-    name: fullName,
-    age: calculateAge(backendData.dateOfBirth) || '-',
-    team: backendData.branch || '-',
-    birthDate: formatDate(backendData.dateOfBirth) || '-',
-    attendance: 0, // Varsayılan değer, backend'den gelmiyorsa
+    name: name,
+    age: calculateAge(studentData.dateOfBirth) || calculateAge(backendData.dateOfBirth) || calculateAge(studentData.birthDate) || calculateAge(backendData.birthDate) || '-',
+    team: studentData.branch || backendData.branch || studentData.team || backendData.team || '-',
+    birthDate: formatDate(studentData.dateOfBirth) || formatDate(backendData.dateOfBirth) || formatDate(studentData.birthDate) || formatDate(backendData.birthDate) || '-',
+    attendance: studentData.attendance || backendData.attendance || 0, // Backend'den gelen attendance varsa kullan
     photo: photo,
-    position: backendData.branch || '-',
-    jerseyNumber: null,
-    hasGroup: false,
-    // Profil bilgileri
+    position: studentData.branch || backendData.branch || studentData.position || backendData.position || '-',
+    jerseyNumber: studentData.jerseyNumber || backendData.jerseyNumber || studentData.jersey_number || backendData.jersey_number || null,
+    hasGroup: studentData.hasGroup || backendData.hasGroup || studentData.has_group || backendData.has_group || false,
+    // Profil bilgileri - iç içe geçmiş student objesi varsa onu kullan
     profile: {
-      tc: backendData.nationalId || '-',
-      school: backendData.schoolName || '-',
-      dob: formatDate(backendData.dateOfBirth) || '-',
-      grade: backendData.class || backendData.classNumber || '-', // Sınıf numarası (backend'de "class" olarak geliyor)
-      phone: backendData.phoneNumber || '-', // Sporcu cep telefonu
-      branch: backendData.branch || '-',
-      address: backendData.homeAddress || '-'
+      tc: studentData.nationalId || backendData.nationalId || '-',
+      school: studentData.schoolName || backendData.schoolName || '-',
+      dob: formatDate(studentData.dateOfBirth) || formatDate(backendData.dateOfBirth) || '-',
+      grade: studentData.class || backendData.class || studentData.classNumber || backendData.classNumber || '-', // Sınıf numarası (backend'de "class" olarak geliyor)
+      phone: studentData.phoneNumber || backendData.phoneNumber || '-', // Sporcu cep telefonu
+      branch: studentData.branch || backendData.branch || '-',
+      address: studentData.homeAddress || backendData.homeAddress || '-'
     },
     // Anne bilgileri - /with-parents endpoint'inden gelen format
     parents: {
