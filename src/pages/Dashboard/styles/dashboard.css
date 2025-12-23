@@ -306,7 +306,7 @@
   margin-top: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
@@ -413,7 +413,7 @@
 }
 
 .dash-row--groups {
-  grid-template-columns: 200px 80px 16px;
+  grid-template-columns: 200px 80px;
   gap: 12px;
   justify-content: start;
   max-width: 320px;
@@ -460,7 +460,7 @@
 
 .dash-right > * {
   width: 100%;
-  max-width: 700px;
+  /* max-width: 700px; */
 }
 
 .dash-top {
@@ -521,7 +521,7 @@
   align-items: flex-start;
   gap: 24px;
   margin-bottom: 16px;
-  margin-left: -60px;
+  margin-left: 220px;
   flex-shrink: 0;
 }
 
@@ -658,7 +658,8 @@
 .dash-parents {
   display: flex;
   gap: 8px;
-  margin-top: 0px;
+  margin-top: 32px;
+  margin-left: 260px;
   margin-bottom: 16px;
   flex-shrink: 0;
 }
@@ -1094,12 +1095,21 @@
   text-align: center;
   margin-top: 16px;
   margin-bottom: 16px;
+  margin-left: 0;
+  margin-right: -40px;
+  width: calc(100% + 40px);
+  max-width: none;
+  align-self: flex-start;
 }
 
 .group-content-wrapper {
   display: grid;
   grid-template-columns: 350px 1fr;
   gap: 24px;
+  margin-left: 0;
+  align-self: flex-start;
+  width: 100%;
+  max-width: none;
 }
 
 .group-info {
@@ -2317,7 +2327,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;

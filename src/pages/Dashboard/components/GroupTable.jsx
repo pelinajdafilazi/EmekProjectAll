@@ -1,5 +1,4 @@
 import React from 'react';
-import { MoreVertical } from 'lucide-react';
 
 // Helper function to format age range for display
 const formatAgeRange = (group) => {
@@ -36,9 +35,6 @@ export default function GroupTable({ groups, selectedId, onSelect, interactive =
             >
               <div className="dash-row__name">{group.name}</div>
               <div className="dash-row__meta">{formatAgeRange(group)}</div>
-              <div className="dash-row__menu">
-                <MoreVertical size={16} strokeWidth={2.5} />
-              </div>
               <div className="dash-row__indicator" aria-hidden="true" />
             </button>
           );

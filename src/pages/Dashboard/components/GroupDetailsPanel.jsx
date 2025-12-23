@@ -230,11 +230,11 @@ export default function GroupDetailsPanel({ group, students }) {
             <div className="group-info__button-group">
               <button 
                 type="button" 
-                className="group-info__save-btn" 
-                onClick={handleSave}
+                className="group-info__delete-btn" 
+                onClick={handleDelete}
                 disabled={isSaving}
               >
-                {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                {isSaving ? 'Siliniyor...' : 'Grubu Sil'}
               </button>
               <button 
                 type="button" 
@@ -255,11 +255,11 @@ export default function GroupDetailsPanel({ group, students }) {
               </button>
               <button 
                 type="button" 
-                className="group-info__delete-btn" 
-                onClick={handleDelete}
+                className="group-info__save-btn" 
+                onClick={handleSave}
                 disabled={isSaving}
               >
-                {isSaving ? 'Siliniyor...' : 'Grubu Sil'}
+                {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
               </button>
             </div>
           ) : (
