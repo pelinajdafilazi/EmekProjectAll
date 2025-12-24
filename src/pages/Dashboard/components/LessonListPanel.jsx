@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { MoreVertical } from 'lucide-react';
 
 export default function LessonListPanel({ lessons, selectedId, onSelect, onAddClick, groups = [], lessonGroupIds = {} }) {
   const [selectedGroupFilter, setSelectedGroupFilter] = useState(null); // null = Tüm Grup
@@ -58,7 +57,6 @@ export default function LessonListPanel({ lessons, selectedId, onSelect, onAddCl
       </button>
 
       <div className="dash-left__groups">
-        <div className="dash-left__groups-title">Gruplar</div>
         <div className="dash-left__group-tabs">
           <button 
             type="button" 
@@ -80,24 +78,48 @@ export default function LessonListPanel({ lessons, selectedId, onSelect, onAddCl
         </div>
       </div>
 
-      <div className="dash-list" role="list">
+      <div className="dash-list dash-list--lessons" role="list">
         {filteredLessons.map((lesson) => {
           const active = lesson.id === selectedId;
+          
+          // Backend'den gelen saat bilgilerini formatla
+          // startingHour ve endingHour direkt olarak kullan
+          const formatTimeDisplay = (time) => {
+            if (!time || time === '-') return '-';
+            // Eğer HH:mm:ss formatındaysa sadece HH:mm'i al
+            if (time.match(/^\d{2}:\d{2}:\d{2}$/)) {
+              return time.substring(0, 5);
+            }
+            // Eğer zaten HH:mm formatındaysa olduğu gibi döndür
+            return time;
+          };
+          
+          const startTime = formatTimeDisplay(lesson.startingHour || lesson._backendData?.startingHour || '-');
+          const endTime = formatTimeDisplay(lesson.endingHour || lesson._backendData?.endingHour || '-');
+          
+          // Ders adı - backend'den lessonName veya name
+          const lessonName = lesson.name || lesson._backendData?.lessonName || '-';
+          
+          // Başlangıç günü - backend'den startingDayOfWeek
+          const startingDay = lesson.day || lesson._backendData?.startingDayOfWeek || '-';
+          
+          // Başlangıç ve bitiş saatlerini birleştir
+          const timeRange = startTime !== '-' && endTime !== '-' 
+            ? `${startTime} - ${endTime}` 
+            : (startTime !== '-' ? startTime : (endTime !== '-' ? endTime : '-'));
+          
           return (
             <button
               key={lesson.id}
               type="button"
-              className={`dash-row ${active ? 'dash-row--active' : ''}`}
+              className={`dash-row dash-row--lessons ${active ? 'dash-row--active' : ''}`}
               onClick={() => onSelect?.(lesson.id)}
             >
-              <div className="dash-row__name">{lesson.name}</div>
-              <div className="dash-row__meta dash-row__meta--wide">{lesson.group}</div>
-              <div className="dash-row__meta">{lesson.day}</div>
-              <div className="dash-row__meta">{lesson.time}</div>
-              <div className="dash-row__meta dash-row__meta--attendance">{lesson.capacity}</div>
-              <div className="dash-row__menu">
-                <MoreVertical size={16} strokeWidth={2.5} />
-              </div>
+              <div className="dash-row__name">{lessonName}</div>
+              <div className="dash-row__meta">{lesson.group || '-'}</div>
+              <div className="dash-row__meta">{startingDay}</div>
+              <div className="dash-row__meta">{timeRange}</div>
+              <div className="dash-row__meta dash-row__meta--attendance">{lesson.capacity || '-'}</div>
               <div className="dash-row__indicator" aria-hidden="true" />
             </button>
           );

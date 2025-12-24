@@ -124,7 +124,7 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
         </div>
       </div>
 
-      <div className="dash-list" role="list">
+      <div className="dash-list dash-list--students" role="list">
         {filteredStudents.map((s) => {
           const active = s.id === selectedId;
           // Öğrencinin hangi grupta olduğunu bul
