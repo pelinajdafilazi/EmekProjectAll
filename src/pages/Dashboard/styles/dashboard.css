@@ -362,7 +362,7 @@
 }
 
 .dash-row--group-students {
-  grid-template-columns: 36px 140px 100px 100px 100px 40px;
+  grid-template-columns: 36px 140px 100px 100px 100px 100px 40px;
 }
 
 .dash-row--lessons {
@@ -749,7 +749,7 @@
 
 .dash-parents__row {
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 130px 1fr;
   height: 33px;
   min-height: 33px;
   max-height: 33px;
@@ -765,8 +765,6 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .dash-parents__value {
@@ -839,7 +837,7 @@
 
 .dash-rel__field {
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 130px 1fr;
   height: 33px;
   min-height: 33px;
   max-height: 33px;
@@ -855,8 +853,6 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .dash-rel__value {
@@ -1454,10 +1450,10 @@
   cursor: pointer;
   transition: opacity 0.2s;
   display: block;
-  margin-left: auto;
-  margin-right: 0;
+  margin-left: 0;
+  margin-right: auto;
   margin-top: 16px;
-  align-self: flex-end;
+  align-self: flex-start;
 }
 
 .group-students__assign-btn:hover {
@@ -1555,7 +1551,13 @@
   font-size: 16px;
   padding: 10px 12px;
   text-align: center;
+  margin-top: 16px;
   margin-bottom: 16px;
+  margin-left: 0;
+  margin-right: -40px;
+  width: calc(100% + 40px);
+  max-width: none;
+  align-self: flex-start;
 }
 
 .lesson-content-wrapper {
@@ -1749,9 +1751,9 @@
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
-  font-size: 14px;
-  padding: 8px 20px;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 16px;
   border-radius: 999px;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -1767,9 +1769,9 @@
   border: 2px solid #5677FB;
   color: #5677FB;
   font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
-  font-size: 14px;
-  padding: 6px 20px;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 5px 16px;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s;
@@ -1779,18 +1781,35 @@
   background: rgba(86, 119, 251, 0.1);
 }
 
+.lesson-info__delete-btn {
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.lesson-info__delete-btn:hover {
+  opacity: 0.9;
+  background: #dc2626;
+}
+
+.lesson-info__delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .lesson-students {
   background: #ffffff;
   padding: 16px;
   display: flex;
   flex-direction: column;
-}
-
-.lesson-students__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  height: fit-content;
 }
 
 .lesson-students__title {
@@ -1798,40 +1817,7 @@
   font-weight: 800;
   font-size: 18px;
   color: #5677FB;
-}
-
-.lesson-students__count {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
-  font-size: 16px;
-  color: #5677FB;
-}
-
-.lesson-students__list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   margin-bottom: 16px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.lesson-students__list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.lesson-students__list::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
-  border-radius: 3px;
-}
-
-.lesson-students__list::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
-  border-radius: 3px;
-}
-
-.lesson-students__list::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
 }
 
 .lesson-student-row {
@@ -1912,8 +1898,10 @@
   cursor: pointer;
   transition: opacity 0.2s;
   display: block;
-  margin-left: auto;
-  margin-top: auto;
+  margin-left: 0;
+  margin-right: auto;
+  margin-top: 16px;
+  align-self: flex-start;
 }
 
 .lesson-students__assign-btn:hover {

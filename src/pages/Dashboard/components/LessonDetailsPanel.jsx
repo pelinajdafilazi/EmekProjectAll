@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MoreVertical, ChevronDown } from 'lucide-react';
-import StudentListModal from './StudentListModal';
+import LessonStudentAssignModal from './LessonStudentAssignModal';
 import { useGroups } from '../../../context/GroupContext';
-import { updateLesson, assignStudentToLesson, getLessonStudents } from '../../../services/lessonService';
+import { updateLesson, assignStudentToLesson, getLessonStudents, deleteLesson } from '../../../services/lessonService';
 import { transformBackendToStudent, StudentService } from '../../../services/studentService';
+import '../styles/lesson-student-modal.css';
 
 // Türkçe gün isimlerini sayısal değere çevir (Backend sayısal değer bekliyor)
 // 0 = Pazartesi, 1 = Salı, 2 = Çarşamba, 3 = Perşembe, 4 = Cuma, 5 = Cumartesi, 6 = Pazar
@@ -28,18 +29,33 @@ const dayMappingTrToEn = {
   'Pazar': 'Sunday'
 };
 
-export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, onStudentsUpdated }) {
+export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, onStudentsUpdated, lessonGroupIds = {} }) {
   const { state: groupState } = useGroups();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDayDropdownOpen, setIsDayDropdownOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [lessonStudents, setLessonStudents] = useState(students || []);
+  
+  // Grup ID'sini bul - önce lesson'dan, sonra _backendData'dan, sonra lessonGroupIds'den
+  const getLessonGroupId = useCallback((lesson) => {
+    if (!lesson) return '';
+    const lessonId = lesson.lessonId || lesson.id;
+    return lesson.groupId 
+      || lesson._backendData?.groupId 
+      || (lessonId ? lessonGroupIds[lessonId] : null)
+      || '';
+  }, [lessonGroupIds]);
+  
+  // Initial lessonData with groupId
+  const initialGroupId = useMemo(() => getLessonGroupId(lesson), [lesson, getLessonGroupId]);
+  
   const [lessonData, setLessonData] = useState({
     name: lesson?.name || '',
-    groupId: lesson?.groupId || '',
+    groupId: initialGroupId,
     capacity: lesson?.capacity || '',
     selectedDay: lesson?.day || '',
     startingHour: lesson?.startingHour || '',
@@ -49,37 +65,8 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
   const dayDropdownRef = useRef(null);
   const daysOfWeek = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
 
-  // Update lessonData when lesson changes (but not when editing)
-  useEffect(() => {
-    if (lesson && !isEditing) {
-      // Grup ID'sini al - önce lesson'dan, sonra groupState'ten bul
-      let groupId = lesson.groupId;
-      if (!groupId && lesson.lessonId) {
-        // Eğer lesson'da groupId yoksa, parent component'ten gelen groupId'yi kullan
-        // Bu durumda lesson.groupId zaten set edilmiş olmalı
-      }
-      
-      // Kapasite formatını düzelt (eğer "0/30" formatındaysa sadece sayıyı al)
-      let capacityValue = lesson.capacity || '';
-      if (typeof capacityValue === 'string' && capacityValue.includes('/')) {
-        capacityValue = capacityValue.split('/')[1];
-      }
-      
-      setLessonData({
-        name: lesson.name || '',
-        groupId: groupId ? String(groupId) : '',
-        capacity: capacityValue,
-        selectedDay: lesson.day || '',
-        startingHour: lesson.startingHour || '',
-        endingHour: lesson.endingHour || ''
-      });
-      // Ders öğrencilerini yükle
-      loadLessonStudents();
-    }
-  }, [lesson, isEditing]);
-
-  // Load lesson students
-  const loadLessonStudents = async () => {
+  // Load lesson students - useCallback ile sarmalandı
+  const loadLessonStudents = useCallback(async () => {
     if (!lesson?.id && !lesson?.lessonId) return;
     
     try {
@@ -110,7 +97,37 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
       console.error('Ders öğrencileri yüklenirken hata:', error);
       setLessonStudents([]);
     }
-  };
+  }, [lesson?.id, lesson?.lessonId, onStudentsUpdated]);
+
+  // Update lessonData when lesson changes (but not when editing)
+  useEffect(() => {
+    if (lesson && !isEditing) {
+      // Grup ID'sini al - önce lesson'dan, sonra _backendData'dan, sonra lessonGroupIds'den
+      const groupId = getLessonGroupId(lesson);
+      
+      // Kapasite formatını düzelt (eğer "0/30" formatındaysa sadece sayıyı al)
+      let capacityValue = lesson.capacity || '';
+      if (typeof capacityValue === 'string' && capacityValue.includes('/')) {
+        capacityValue = capacityValue.split('/')[1];
+      }
+      
+      setLessonData({
+        name: lesson.name || '',
+        groupId: groupId ? String(groupId) : '',
+        capacity: capacityValue,
+        selectedDay: lesson.day || '',
+        startingHour: lesson.startingHour || '',
+        endingHour: lesson.endingHour || ''
+      });
+    }
+  }, [lesson?.id, lesson?.lessonId, lesson?.name, lesson?.groupId, lesson?.capacity, lesson?.day, lesson?.startingHour, lesson?.endingHour, lesson?._backendData?.groupId, isEditing, lessonGroupIds]);
+
+  // Load lesson students when lesson changes - ayrı useEffect
+  useEffect(() => {
+    if (lesson && !isEditing) {
+      loadLessonStudents();
+    }
+  }, [lesson?.id, lesson?.lessonId, isEditing, loadLessonStudents]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -310,6 +327,9 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
   const handleEdit = () => {
     setIsEditing(true);
     
+    // Grup ID'sini al - önce lesson'dan, sonra _backendData'dan, sonra lessonGroupIds'den
+    const groupId = getLessonGroupId(lesson);
+    
     // Kapasite formatını düzelt (eğer "0/30" formatındaysa sadece sayıyı al)
     let capacityValue = lesson?.capacity || '';
     if (typeof capacityValue === 'string' && capacityValue.includes('/')) {
@@ -318,12 +338,48 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
     
     setLessonData({
       name: lesson?.name || '',
-      groupId: lesson?.groupId ? String(lesson.groupId) : '',
+      groupId: groupId ? String(groupId) : '',
       capacity: capacityValue,
       selectedDay: lesson?.day || '',
       startingHour: lesson?.startingHour || '',
       endingHour: lesson?.endingHour || ''
     });
+  };
+
+  const handleDelete = async () => {
+    if (!lesson?.id && !lesson?.lessonId) {
+      setError('Ders seçilmedi');
+      return;
+    }
+
+    // Kullanıcıdan onay al
+    const confirmed = window.confirm('Bu dersi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.');
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const lessonId = lesson.lessonId || lesson.id;
+      console.log('Ders siliniyor - Lesson ID:', lessonId);
+      await deleteLesson(lessonId);
+      
+      // Parent component'e bildir (ders silindi, liste yenilensin)
+      if (onLessonUpdated) {
+        onLessonUpdated({ 
+          lessonId: lessonId,
+          deleted: true 
+        });
+      }
+    } catch (err) {
+      console.error('Ders silme hatası:', err);
+      const errorMessage = err.message || err.toString() || 'Ders silinirken bir hata oluştu';
+      setError(errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (!lesson) {
@@ -391,26 +447,32 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
               ) : (
                 <div className="lesson-info__value">
                   {(() => {
+                    // Grup ID'sini al - önce lesson'dan, sonra _backendData'dan, sonra lessonGroupIds'den
+                    const groupId = getLessonGroupId(lesson);
+                    
                     // Grup bilgisini bul - önce groupId'den grup listesinde ara
-                    if (lesson.groupId) {
+                    if (groupId && groupState.groups && groupState.groups.length > 0) {
+                      const lessonGroupIdStr = String(groupId).trim();
                       const foundGroup = groupState.groups.find(g => {
                         const gId = String(g.id).trim();
-                        const lessonGroupId = String(lesson.groupId).trim();
-                        return gId === lessonGroupId || gId.toLowerCase() === lessonGroupId.toLowerCase();
+                        return gId === lessonGroupIdStr || gId.toLowerCase() === lessonGroupIdStr.toLowerCase();
                       });
                       if (foundGroup) {
                         return foundGroup.name;
                       }
                     }
-                    // Eğer grup bulunamazsa lesson'dan gelen groupName'i kullan
+                    
+                    // Eğer grup bulunamazsa lesson'dan gelen groupName veya group'u kullan
                     const displayName = lesson.groupName || lesson.group;
-                    if (displayName && displayName !== '-') {
+                    if (displayName && displayName !== '-' && displayName !== 'Grup Bulunamadı' && displayName !== 'Grup Yükleniyor...') {
                       return displayName;
                     }
+                    
                     // Eğer hala grup bulunamadıysa ve groupId varsa, grup yükleniyor olabilir
-                    if (lesson.groupId) {
+                    if (groupId) {
                       return 'Grup yükleniyor...';
                     }
+                    
                     return '-';
                   })()}
                 </div>
@@ -497,11 +559,11 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
             <div className="lesson-info__button-group">
               <button 
                 type="button" 
-                className="lesson-info__save-btn" 
-                onClick={handleSave}
-                disabled={isSaving}
+                className="lesson-info__delete-btn" 
+                onClick={handleDelete}
+                disabled={isSaving || isDeleting}
               >
-                {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                {isDeleting ? 'Siliniyor...' : 'Dersi Sil'}
               </button>
               <button 
                 type="button" 
@@ -519,9 +581,17 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
                     endingHour: lesson?.endingHour || ''
                   });
                 }}
-                disabled={isSaving}
+                disabled={isSaving || isDeleting}
               >
                 İptal
+              </button>
+              <button 
+                type="button" 
+                className="lesson-info__save-btn" 
+                onClick={handleSave}
+                disabled={isSaving || isDeleting}
+              >
+                {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
               </button>
             </div>
           ) : (
@@ -532,15 +602,8 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
         </div>
 
         <div className="lesson-students">
-          <div className="lesson-students__header">
-            <h2 className="lesson-students__title">Öğrenci Listesi</h2>
-            <div className="lesson-students__count">
-              {lessonStudents.length}/{typeof lesson.capacity === 'string' && lesson.capacity.includes('/') 
-                ? lesson.capacity.split('/')[1] 
-                : lesson.capacity || '-'}
-            </div>
-          </div>
-          <div className="lesson-students__list">
+          <h2 className="lesson-students__title">Öğrenci Listesi</h2>
+          <div className="dash-list" role="list">
             {lessonStudents.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
                 Henüz öğrenci atanmamış
@@ -549,28 +612,33 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
               lessonStudents.map((student) => {
                 const studentName = student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'İsimsiz Öğrenci';
                 const studentPhoto = student.photo || student.photoUrl || '/avatars/student-1.svg';
-                const studentAge = student.age || '-';
+                const studentAge = student.age !== undefined && student.age !== '-' ? student.age : '-';
                 const studentTeam = student.team || student.branch || '-';
                 const studentBirthDate = student.birthDate || student.dateOfBirth || '-';
-                const studentAttendance = student.attendance || '-';
+                
+                // Grup bilgisini al
+                const lessonGroupId = getLessonGroupId(lesson);
+                const lessonGroup = lessonGroupId 
+                  ? groupState.groups.find(g => String(g.id) === String(lessonGroupId))
+                  : null;
+                const groupName = lessonGroup ? lessonGroup.name : '-';
                 
                 return (
-                  <div key={student.id} className="lesson-student-row">
-                    <div className="lesson-student-row__avatar">
+                  <button
+                    key={student.id}
+                    type="button"
+                    className="dash-row dash-row--group-students"
+                  >
+                    <div className="dash-row__indicator" aria-hidden="true" />
+                    <div className="dash-row__avatar">
                       <img src={studentPhoto} alt={studentName} />
                     </div>
-                    <div className="lesson-student-row__name">{studentName}</div>
-                    <div className="lesson-student-row__meta">{studentAge}</div>
-                    <div className="lesson-student-row__meta lesson-student-row__meta--wide">
-                      {studentTeam}
-                    </div>
-                    <div className="lesson-student-row__meta">{studentBirthDate}</div>
-                    <div className="lesson-student-row__meta">{studentAttendance}</div>
-                    <div className="lesson-student-row__menu">
-                      <MoreVertical size={16} strokeWidth={2.5} />
-                    </div>
-                    <div className="lesson-student-row__indicator" />
-                  </div>
+                    <div className="dash-row__name">{studentName}</div>
+                    <div className="dash-row__meta">{groupName}</div>
+                    <div className="dash-row__meta dash-row__meta--wide">{studentTeam}</div>
+                    <div className="dash-row__meta dash-row__meta--wide">{studentBirthDate}</div>
+                    <div className="dash-row__meta">{studentAge}</div>
+                  </button>
                 );
               })
             )}
@@ -586,7 +654,7 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
         </div>
       </div>
 
-      <StudentListModal
+      <LessonStudentAssignModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAssign={handleAssignStudent}

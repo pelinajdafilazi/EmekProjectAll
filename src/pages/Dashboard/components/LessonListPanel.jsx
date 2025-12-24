@@ -108,6 +108,29 @@ export default function LessonListPanel({ lessons, selectedId, onSelect, onAddCl
             ? `${startTime} - ${endTime}` 
             : (startTime !== '-' ? startTime : (endTime !== '-' ? endTime : '-'));
           
+          // Grup adını bul - önce lesson.group'dan, yoksa groupId'den groups listesinde ara
+          let groupName = lesson.group || '-';
+          if (groupName === '-' || groupName === 'Grup Bulunamadı' || groupName === 'Grup Yükleniyor...') {
+            // Grup ID'sini al
+            const lessonId = lesson.lessonId || lesson.id;
+            const lessonGroupId = lesson.groupId 
+              || lesson._backendData?.groupId 
+              || (lessonId ? lessonGroupIds[lessonId] : null);
+            
+            // Grup listesinden grup adını bul
+            if (lessonGroupId && groups && groups.length > 0) {
+              const lessonGroupIdStr = String(lessonGroupId).trim();
+              const foundGroup = groups.find(g => {
+                const gIdStr = String(g.id).trim();
+                return gIdStr === lessonGroupIdStr || gIdStr.toLowerCase() === lessonGroupIdStr.toLowerCase();
+              });
+              
+              if (foundGroup) {
+                groupName = foundGroup.name;
+              }
+            }
+          }
+          
           return (
             <button
               key={lesson.id}
@@ -116,7 +139,7 @@ export default function LessonListPanel({ lessons, selectedId, onSelect, onAddCl
               onClick={() => onSelect?.(lesson.id)}
             >
               <div className="dash-row__name">{lessonName}</div>
-              <div className="dash-row__meta">{lesson.group || '-'}</div>
+              <div className="dash-row__meta">{groupName}</div>
               <div className="dash-row__meta">{startingDay}</div>
               <div className="dash-row__meta">{timeRange}</div>
               <div className="dash-row__meta dash-row__meta--attendance">{lesson.capacity || '-'}</div>
