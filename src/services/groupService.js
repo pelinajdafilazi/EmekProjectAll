@@ -7,13 +7,62 @@ import { transformBackendToStudent } from './studentService';
  */
 
 /**
- * Tüm grupları getir
+ * Silinen grup ID'lerini localStorage'dan al
+ * @returns {Set<string>} Silinen grup ID'leri
+ */
+function getDeletedGroupIds() {
+  try {
+    const deletedIds = localStorage.getItem('deletedGroupIds');
+    return deletedIds ? new Set(JSON.parse(deletedIds)) : new Set();
+  } catch (error) {
+    console.error('Silinen grup ID\'leri okunurken hata:', error);
+    return new Set();
+  }
+}
+
+/**
+ * Silinen grup ID'sini localStorage'a kaydet
+ * @param {string} groupId - Silinen grup ID'si
+ */
+function saveDeletedGroupId(groupId) {
+  try {
+    const deletedIds = getDeletedGroupIds();
+    deletedIds.add(String(groupId));
+    localStorage.setItem('deletedGroupIds', JSON.stringify(Array.from(deletedIds)));
+  } catch (error) {
+    console.error('Silinen grup ID\'si kaydedilirken hata:', error);
+  }
+}
+
+/**
+ * Tüm grupları getir (sadece aktif olanlar)
  * @returns {Promise<Array>} Grup listesi
  */
 export async function getGroups() {
   try {
     const response = await apiClient.get('/Groups');
-    return response.data;
+    const allGroups = response.data || [];
+    
+    // Backend'den gelen aktif grupları filtrele
+    const backendActiveGroups = allGroups.filter(group => group.isActive !== false);
+    
+    // localStorage'daki silinen grup ID'lerini al
+    const deletedIds = getDeletedGroupIds();
+    
+    // Hem backend'den gelen isActive: false olanları hem de localStorage'daki silinenleri filtrele
+    const activeGroups = backendActiveGroups.filter(group => {
+      const groupId = String(group.id);
+      const isDeleted = deletedIds.has(groupId);
+      
+      // Eğer localStorage'da silinmiş olarak işaretliyse gösterilmez
+      if (isDeleted) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    return activeGroups;
   } catch (error) {
     throw new ApiError(
       error.response?.data?.message || 'Gruplar yüklenirken bir hata oluştu',
@@ -145,55 +194,37 @@ export async function updateGroup(groupId, groupData) {
 }
 
 /**
- * Grup sil
+ * Grup sil (isActive: false yaparak ve localStorage'a kaydederek)
  * @param {string|number} groupId - Grup ID'si
  * @returns {Promise<void>}
  */
 export async function deleteGroup(groupId) {
   try {
-    // Backend'de grup silme endpoint'i kontrol ediliyor
-    // Swagger'da DELETE /api/Groups/{id} endpoint'i görünmüyor
-    // Eğer endpoint farklıysa burayı güncelleyin
-    const response = await apiClient.delete(`/Groups/${groupId}`);
+    const groupIdString = String(groupId);
+    
+    // Önce grubun mevcut bilgilerini al
+    const currentGroup = await getGroupById(groupIdString);
+    
+    // Tüm grup bilgilerini koruyarak sadece isActive'i false yap
+    const payload = {
+      name: currentGroup.name,
+      minAge: currentGroup.minAge,
+      maxAge: currentGroup.maxAge,
+      isActive: false
+    };
+
+    // PUT kullanarak isActive: false yap
+    const response = await apiClient.put(`/Groups/${groupIdString}`, payload);
+    
+    // Silinen grup ID'sini localStorage'a kaydet (sayfa yenilendiğinde de görünmesin)
+    saveDeletedGroupId(groupIdString);
+    
     return response.data;
   } catch (error) {
-    // Detaylı hata mesajı
-    let errorMessage = 'Grup silinirken bir hata oluştu';
-    
-    if (error.response) {
-      // Backend'den gelen hata mesajı
-      const backendError = error.response.data;
-      if (backendError?.message) {
-        errorMessage = backendError.message;
-      } else if (backendError?.error) {
-        errorMessage = backendError.error;
-      } else if (typeof backendError === 'string') {
-        errorMessage = backendError;
-      } else if (error.response.status === 404) {
-        errorMessage = 'Grup silme endpoint\'i bulunamadı. Backend\'de DELETE /api/Groups/{id} endpoint\'i tanımlı olmayabilir.';
-      } else if (error.response.status === 405) {
-        errorMessage = 'Grup silme metodu desteklenmiyor. Backend\'de DELETE endpoint\'i tanımlı değil.';
-      } else if (error.response.status === 400) {
-        errorMessage = 'Geçersiz grup ID';
-      } else if (error.response.status === 500) {
-        errorMessage = 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.';
-      }
-    } else if (error.request) {
-      // İstek gönderildi ama yanıt alınamadı
-      errorMessage = 'Sunucuya bağlanılamadı. Lütfen bağlantınızı kontrol edin.';
-    } else {
-      // İstek hazırlanırken hata oluştu
-      errorMessage = error.message || 'Beklenmeyen bir hata oluştu';
-    }
-    
-    console.error('Grup silme hatası:', {
-      groupId,
-      error: error.response?.data || error.message,
-      status: error.response?.status,
-      url: error.config?.url,
-      method: error.config?.method,
-      note: 'Backend\'de DELETE /api/Groups/{id} endpoint\'i olmayabilir. Swagger\'ı kontrol edin.'
-    });
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        error.message || 
+                        'Grup silinirken bir hata oluştu';
     
     throw new ApiError(errorMessage, false);
   }
@@ -666,4 +697,3 @@ export async function getAllStudents() {
     );
   }
 }
-

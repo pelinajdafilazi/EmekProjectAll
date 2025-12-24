@@ -1,16 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, MoreVertical } from 'lucide-react';
+import { X, Search } from 'lucide-react';
 import * as GroupService from '../../../services/groupService';
 import { StudentService } from '../../../services/studentService';
-import { getStudentsWithoutLesson } from '../../../services/lessonService';
 
 export default function StudentListModal({ isOpen, onClose, onAssign, lessonId = null }) {
-  const [activeTab, setActiveTab] = useState('without-lesson');
+  const [activeTab, setActiveTab] = useState('without-group');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [studentGroupMap, setStudentGroupMap] = useState(new Map()); // Öğrenci ID -> Grup adı
+
+  // Gruplardaki öğrencileri yükle ve mapping oluştur
+  useEffect(() => {
+    const loadGroupStudents = async () => {
+      if (!isOpen) return;
+      
+      const studentToGroupMap = new Map(); // Öğrenci ID -> Grup adı
+      
+      try {
+        const groups = await GroupService.getGroups();
+        
+        for (const group of groups) {
+          try {
+            const groupStudents = await GroupService.getGroupStudents(group.id);
+            // Öğrenci ID'lerini Set'e ekle (hem id hem de nationalId'yi kontrol et)
+            groupStudents.forEach(student => {
+              const studentId = student.id || student._backendData?.id;
+              const studentNationalId = student.profile?.tc || student._backendData?.nationalId;
+              
+              if (studentId) {
+                studentToGroupMap.set(String(studentId), group.name);
+              }
+              if (studentNationalId && studentNationalId !== '-') {
+                studentToGroupMap.set(String(studentNationalId), group.name);
+              }
+              if (student._backendData?.id) {
+                studentToGroupMap.set(String(student._backendData.id), group.name);
+              }
+              if (student._backendData?.nationalId) {
+                studentToGroupMap.set(String(student._backendData.nationalId), group.name);
+              }
+            });
+          } catch (error) {
+            console.error(`Grup ${group.id} öğrencileri yüklenirken hata:`, error);
+          }
+        }
+        
+        setStudentGroupMap(studentToGroupMap);
+      } catch (error) {
+        console.error('Gruplar yüklenirken hata:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadGroupStudents();
+    }
+  }, [isOpen]);
 
   // Load students when modal opens
   useEffect(() => {
@@ -26,20 +73,19 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
     setError(null);
     try {
       let data;
-      if (activeTab === 'without-lesson') {
-        // Derse kayıtlı olmayan sporcular
+      if (activeTab === 'without-group') {
+        // Grubu olmayan sporcular
         try {
-          data = await getStudentsWithoutLesson(lessonId);
-          console.log('Derse kayıtlı olmayan öğrenciler:', data);
-        } catch (lessonError) {
-          console.warn('Derse kayıtlı olmayan öğrenciler endpoint\'i hata verdi:', lessonError);
-          // Alternatif: Tüm öğrencileri getir
-          const allStudents = await StudentService.getAllStudents();
-          data = allStudents;
+          data = await GroupService.getStudentsWithoutGroups();
+          console.log('Grubu olmayan sporcular:', data);
+        } catch (error) {
+          console.error('Grubu olmayan sporcular yüklenirken hata:', error);
+          throw error;
         }
       } else {
         // Tüm sporcular - hem gruplu hem grupsuz tüm öğrenciler
         data = await StudentService.getAllStudents();
+        console.log('Tüm sporcular:', data);
       }
       setStudents(data || []);
     } catch (err) {
@@ -99,14 +145,14 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
             {/* Tabs */}
             <div className="student-modal__tabs">
               <button
-                className={`student-modal__tab ${activeTab === 'without-lesson' ? 'student-modal__tab--active' : ''}`}
+                className={`student-modal__tab ${activeTab === 'without-group' ? 'student-modal__tab--active' : ''}`}
                 onClick={() => {
-                  setActiveTab('without-lesson');
+                  setActiveTab('without-group');
                   setSelectedStudent(null);
                   setSearchQuery('');
                 }}
               >
-                Derse Kayıtlı Olmayan Sporcular
+                Grubu Olmayan Sporcular
               </button>
               <button
                 className={`student-modal__tab ${activeTab === 'all' ? 'student-modal__tab--active' : ''}`}
@@ -132,8 +178,8 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                 </div>
               ) : filteredStudents.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
-                  {activeTab === 'without-lesson' 
-                    ? 'Derse kayıtlı olmayan öğrenci bulunamadı' 
+                  {activeTab === 'without-group' 
+                    ? 'Grubu olmayan sporcu bulunamadı' 
                     : 'Öğrenci bulunamadı'}
                 </div>
               ) : (
@@ -142,9 +188,14 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                   const studentName = student.name || 'İsimsiz Öğrenci';
                   const studentPhoto = student.photo || '/avatars/student-1.svg';
                   const studentAge = student.age !== '-' ? student.age : '-';
-                  const studentBirthDate = student.birthDate !== '-' ? student.birthDate : '-';
                   const studentBranch = student.team || student.branch || '-';
-                  const studentAttendance = student.attendance !== undefined ? student.attendance : '-';
+                  
+                  // Öğrencinin hangi grupta olduğunu bul
+                  const studentId = String(student.id || '');
+                  const studentNationalId = String(student.profile?.tc || student._backendData?.nationalId || '');
+                  const studentGroup = studentGroupMap.get(studentId) || 
+                                      (studentNationalId !== '' ? studentGroupMap.get(studentNationalId) : null) ||
+                                      '-';
                   
                   return (
                     <button
@@ -152,30 +203,22 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                       className={`student-modal__row ${selectedStudent?.id === student.id ? 'student-modal__row--active' : ''}`}
                       onClick={() => setSelectedStudent(student)}
                     >
+                      <div className="student-modal__row-indicator" aria-hidden="true" />
                       <div className="student-modal__row-avatar">
                         <img src={studentPhoto} alt={studentName} />
                       </div>
                       <div className="student-modal__row-name">{studentName}</div>
-                      <div className="student-modal__row-meta">{studentAge}</div>
+                      <div className="student-modal__row-meta">{studentGroup}</div>
                       <div className="student-modal__row-meta student-modal__row-meta--wide">
                         {studentBranch}
                       </div>
-                      <div className="student-modal__row-meta">
-                        {studentBirthDate}
-                      </div>
-                      <div className="student-modal__row-meta">{studentAttendance}</div>
-                      <div className="student-modal__row-menu">
-                        <MoreVertical style={{ width: '16px', height: '16px', color: '#5677fb' }} />
-                      </div>
+                      <div className="student-modal__row-meta">{studentAge}</div>
                     </button>
                   );
                 })
               )}
             </div>
           </div>
-
-          {/* Vertical Divider */}
-          <div className="student-modal__divider" />
 
           {/* Right Panel - Student Details */}
           <div className="student-modal__right">
@@ -211,7 +254,7 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                       {selectedStudent.age || (selectedStudent.dateOfBirth ? new Date().getFullYear() - new Date(selectedStudent.dateOfBirth).getFullYear() : '-')}
                     </div>
                   </div>
-                  <div className="student-modal__detail-row">
+                  <div className="student-modal__detail-row student-modal__detail-row--last">
                     <div className="student-modal__detail-label">Doğum Tarihi</div>
                     <div className="student-modal__detail-value">
                       {selectedStudent.birthDate || (selectedStudent.dateOfBirth ? new Date(selectedStudent.dateOfBirth).toLocaleDateString('tr-TR') : '-')}
@@ -219,11 +262,31 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                   </div>
                 </div>
 
-                <div className="student-modal__status">
-                  {activeTab === 'without-lesson' 
-                    ? 'Mevcut Dersi Bulunmamaktadır' 
-                    : 'Öğrenci Bilgileri'}
-                </div>
+                {(() => {
+                  const studentId = String(selectedStudent.id || '');
+                  const studentNationalId = String(selectedStudent.profile?.tc || selectedStudent._backendData?.nationalId || '');
+                  const studentGroup = studentGroupMap.get(studentId) || 
+                                      (studentNationalId !== '' ? studentGroupMap.get(studentNationalId) : null);
+                  
+                  if (studentGroup) {
+                    return (
+                      <div className="student-modal__details student-modal__details--group">
+                        <div className="student-modal__detail-row">
+                          <div className="student-modal__detail-label">Mevcut Grup</div>
+                          <div className="student-modal__detail-value">
+                            {studentGroup}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="student-modal__no-group">
+                        Mevcut Grubu<br />Bulunmamaktadır
+                      </div>
+                    );
+                  }
+                })()}
 
                 <button 
                   className="student-modal__assign-btn" 

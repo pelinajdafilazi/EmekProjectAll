@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { MoreVertical } from 'lucide-react';
 import StudentListModal from './StudentListModal';
 import { useGroups } from '../../../context/GroupContext';
+import { StudentService } from '../../../services/studentService';
 
 // Helper function to parse age range string to min/max numbers (for backward compatibility)
 const parseAgeRange = (ageRangeString) => {
@@ -50,6 +50,7 @@ export default function GroupDetailsPanel({ group, students }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [studentBranches, setStudentBranches] = useState(new Map()); // Öğrenci ID -> Branş
   
   // Get initial age range from group data
   const initialAgeRange = getAgeRange(group);
@@ -73,6 +74,65 @@ export default function GroupDetailsPanel({ group, students }) {
       setError(null);
     }
   }, [group]);
+
+  // Öğrenci ID'lerinden branş bilgilerini çek
+  useEffect(() => {
+    const fetchStudentBranches = async () => {
+      if (!students || students.length === 0) {
+        setStudentBranches(new Map());
+        return;
+      }
+
+      const branchMap = new Map();
+      const promises = students.map(async (student) => {
+        try {
+          const studentId = student?.id || 
+                           student?.studentId || 
+                           student?.student?.id ||
+                           student?._backendData?.id;
+          
+          if (!studentId) return;
+
+          // Öğrenci verisinde branş bilgisi varsa önce onu kontrol et
+          const existingBranch = student?.team || 
+                                student?.branch || 
+                                student?.position ||
+                                student?.student?.branch ||
+                                student?.student?.team ||
+                                student?._backendData?.branch ||
+                                student?.profile?.branch;
+          
+          if (existingBranch && existingBranch !== '-') {
+            branchMap.set(String(studentId), existingBranch);
+            return;
+          }
+
+          // Branş bilgisi yoksa API'den çek
+          const studentDetails = await StudentService.getStudentById(studentId);
+          if (studentDetails) {
+            const branch = studentDetails.team || 
+                          studentDetails.branch || 
+                          studentDetails.position ||
+                          studentDetails.profile?.branch ||
+                          '-';
+            branchMap.set(String(studentId), branch);
+          }
+        } catch (error) {
+          console.error(`Öğrenci ${student?.id} branş bilgisi çekilirken hata:`, error);
+          // Hata durumunda '-' kullan
+          const studentId = student?.id || student?.studentId || student?.student?.id;
+          if (studentId) {
+            branchMap.set(String(studentId), '-');
+          }
+        }
+      });
+
+      await Promise.all(promises);
+      setStudentBranches(branchMap);
+    };
+
+    fetchStudentBranches();
+  }, [students]);
 
   const handleAssignStudent = async (studentId) => {
     try {
@@ -137,6 +197,11 @@ export default function GroupDetailsPanel({ group, students }) {
   };
 
   const handleDelete = async () => {
+    if (!group || !group.id) {
+      setError('Grup bilgisi bulunamadı.');
+      return;
+    }
+
     if (!window.confirm(`"${group.name}" grubunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
       return;
     }
@@ -145,10 +210,8 @@ export default function GroupDetailsPanel({ group, students }) {
     setIsSaving(true);
     try {
       await actions.deleteGroup(group.id);
-      // Silme başarılı - grup zaten context'te kaldırıldı
       setIsSaving(false);
     } catch (err) {
-      console.error('Grup silme hatası:', err);
       setError(err.message || 'Grup silinirken bir hata oluştu');
       setIsSaving(false);
     }
@@ -271,7 +334,7 @@ export default function GroupDetailsPanel({ group, students }) {
 
         <div className="group-students">
           <h2 className="group-students__title">Öğrenci Listesi</h2>
-          <div className="group-students__list">
+          <div className="dash-list" role="list">
             {students.map((student) => {
               // Öğrenci bilgilerini güvenli şekilde al - tüm olası alan adlarını kontrol et
               // Backend'den gelen _backendData içindeki studentFirstName ve studentLastName'i de kontrol et
@@ -290,32 +353,68 @@ export default function GroupDetailsPanel({ group, students }) {
                                   '/avatars/student-1.svg';
               
               const studentAge = student?.age !== undefined && student?.age !== '-' ? student.age : '-';
-              const studentTeam = student?.team || student?.branch || student?.student?.branch || '-';
-              const studentBirthDate = student?.birthDate !== undefined && student?.birthDate !== '-' ? student.birthDate : '-';
+              
+              // Öğrenci ID'sini al
+              const studentId = String(student?.id || 
+                                      student?.studentId || 
+                                      student?.student?.id ||
+                                      student?._backendData?.id ||
+                                      '');
+              
+              // Önce Map'ten branş bilgisini kontrol et (API'den çekilmiş)
+              let studentBranch = studentBranches.get(studentId);
+              
+              // Map'te yoksa mevcut verilerden kontrol et
+              if (!studentBranch || studentBranch === '-') {
+                studentBranch = student?.team || 
+                                student?.branch || 
+                                student?.position ||
+                                student?.student?.branch ||
+                                student?.student?.team ||
+                                backendData?.branch ||
+                                backendData?.team ||
+                                student?.profile?.branch ||
+                                '-';
+              }
+              const studentBirthDate = student?.birthDate !== undefined && student?.birthDate !== '-' 
+                ? student.birthDate 
+                : (student?.profile?.dob !== undefined && student?.profile?.dob !== '-' 
+                  ? student.profile.dob 
+                  : (backendData?.dateOfBirth 
+                    ? (() => {
+                        try {
+                          const date = new Date(backendData.dateOfBirth);
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const year = date.getFullYear();
+                          return `${day}.${month}.${year}`;
+                        } catch {
+                          return '-';
+                        }
+                      })()
+                    : (student?.student?.birthDate !== undefined && student?.student?.birthDate !== '-' 
+                      ? student.student.birthDate 
+                      : '-')));
               const studentAttendance = student?.attendance !== undefined ? student.attendance : '-';
               
-              // Debug: Öğrenci objesini console'a yazdır
-              if (!student?.name || student?.name === 'İsimsiz Öğrenci') {
-                console.log('Student object without name:', student);
-              }
-              
               return (
-                <div key={student.id || student.studentId || student.student?.id || Math.random()} className="group-student-row">
-                  <div className="group-student-row__avatar">
+                <button
+                  key={student.id || student.studentId || student.student?.id || Math.random()}
+                  type="button"
+                  className="dash-row dash-row--group-students"
+                >
+                  <div className="dash-row__indicator" aria-hidden="true" />
+                  <div className="dash-row__avatar">
                     <img src={studentPhoto} alt={studentName} />
                   </div>
-                  <div className="group-student-row__name">{studentName}</div>
-                  <div className="group-student-row__meta">{studentAge}</div>
-                  <div className="group-student-row__meta group-student-row__meta--wide">
-                    {studentTeam}
+                  <div className="dash-row__name">{studentName}</div>
+                  <div className="dash-row__meta">{group?.name || '-'}</div>
+                  <div className="dash-row__meta dash-row__meta--wide">{studentBranch}</div>
+                  <div className="dash-row__meta dash-row__meta--wide">
+                    {studentBirthDate}
                   </div>
-                  <div className="group-student-row__meta">{studentBirthDate}</div>
-                  <div className="group-student-row__meta">{studentAttendance}</div>
-                  <div className="group-student-row__menu">
-                    <MoreVertical size={16} strokeWidth={2.5} />
-                  </div>
-                  <div className="group-student-row__indicator" />
-                </div>
+                  <div className="dash-row__meta">{studentAge}</div>
+                </button>
               );
             })}
           </div>
