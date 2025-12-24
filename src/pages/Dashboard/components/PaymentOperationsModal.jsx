@@ -1,12 +1,43 @@
-﻿import React from 'react';
-import { X } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { X, Plus } from 'lucide-react';
 
 export default function PaymentOperationsModal({ isOpen, onClose, student }) {
+  const [payments, setPayments] = useState([]);
+  
+  useEffect(() => {
+    if (isOpen && student?.payments) {
+      setPayments([...student.payments]);
+    }
+  }, [isOpen, student]);
+
   if (!isOpen) return null;
 
-  const payments = student?.payments || [];
   const name = student?.name || '';
   const photo = student?.photo || '/avatars/profile-large.svg';
+
+  const handleAddRow = () => {
+    const newRow = {
+      monthYear: '',
+      paymentDate: '',
+      fee: 0,
+      equipment: 0,
+      paid: 0
+    };
+    setPayments([...payments, newRow]);
+  };
+
+  const handleCellChange = (index, field, value) => {
+    const updatedPayments = [...payments];
+    
+    if (field === 'fee' || field === 'equipment' || field === 'paid') {
+      const numValue = parseFloat(value.replace(/[^0-9]/g, '')) || 0;
+      updatedPayments[index][field] = numValue;
+    } else {
+      updatedPayments[index][field] = value;
+    }
+    
+    setPayments(updatedPayments);
+  };
 
   return (
     <div className="payment-modal-overlay" onClick={onClose}>
@@ -36,28 +67,76 @@ export default function PaymentOperationsModal({ isOpen, onClose, student }) {
           </div>
           <div className="payment-modal__table-body">
             {payments.map((payment, index) => {
-              const total = payment.fee + payment.equipment;
+              const total = (payment.fee || 0) + (payment.equipment || 0);
               const paid = payment.paid || 0;
               const debt = total - paid;
               const isUnpaid = debt > 0;
 
               return (
                 <div key={index} className={'payment-table__row ' + (isUnpaid ? 'payment-table__row--unpaid' : '')}>
-                  <div className="payment-table__cell">{payment.monthYear}</div>
-                  <div className="payment-table__cell">{payment.paymentDate}</div>
-                  <div className="payment-table__cell">{payment.fee.toLocaleString('tr-TR')},00</div>
-                  <div className="payment-table__cell">{payment.equipment.toLocaleString('tr-TR')},00</div>
-                  <div className="payment-table__cell">{paid.toLocaleString('tr-TR')},00</div>
-                  <div className="payment-table__cell">{debt.toLocaleString('tr-TR')},00</div>
+                  <div className="payment-table__cell">
+                    <input
+                      type="text"
+                      className="payment-table__input"
+                      value={payment.monthYear || ''}
+                      onChange={(e) => handleCellChange(index, 'monthYear', e.target.value)}
+                      placeholder="Ay / Yıl"
+                    />
+                  </div>
+                  <div className="payment-table__cell">
+                    <input
+                      type="text"
+                      className="payment-table__input"
+                      value={payment.paymentDate || ''}
+                      onChange={(e) => handleCellChange(index, 'paymentDate', e.target.value)}
+                      placeholder="Tarih"
+                    />
+                  </div>
+                  <div className="payment-table__cell">
+                    <input
+                      type="text"
+                      className="payment-table__input payment-table__input--number"
+                      value={payment.fee ? payment.fee.toLocaleString('tr-TR') + ',00' : '0,00'}
+                      onChange={(e) => handleCellChange(index, 'fee', e.target.value)}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="payment-table__cell">
+                    <input
+                      type="text"
+                      className="payment-table__input payment-table__input--number"
+                      value={payment.equipment ? payment.equipment.toLocaleString('tr-TR') + ',00' : '0,00'}
+                      onChange={(e) => handleCellChange(index, 'equipment', e.target.value)}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="payment-table__cell">
+                    <input
+                      type="text"
+                      className="payment-table__input payment-table__input--number"
+                      value={paid ? paid.toLocaleString('tr-TR') + ',00' : '0,00'}
+                      onChange={(e) => handleCellChange(index, 'paid', e.target.value)}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="payment-table__cell payment-table__cell--debt">
+                    {debt.toLocaleString('tr-TR')},00
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        <button type="button" className="payment-modal__save-btn">
-          Kaydet
-        </button>
+        <div className="payment-modal__actions">
+          <button type="button" className="payment-modal__add-row-btn" onClick={handleAddRow}>
+            <Plus size={20} />
+            Yeni Satır Ekle
+          </button>
+          <button type="button" className="payment-modal__save-btn">
+            Kaydet
+          </button>
+        </div>
       </div>
     </div>
   );
