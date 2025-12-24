@@ -1,0 +1,509 @@
+/* ===========================================
+   LESSON STUDENT ASSIGN MODAL STYLES
+   Based on Student List Modal design
+=========================================== */
+
+/* Modal Overlay */
+.lesson-student-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 40px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Modal Container */
+.lesson-student-modal {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  height: calc(100vh - 80px);
+  max-height: 900px;
+  min-height: 600px;
+  background: #ffffff;
+  border: 3px solid #5677fb;
+  border-radius: 24px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Close Button */
+.lesson-student-modal__close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.lesson-student-modal__close:hover:not(:disabled) {
+  opacity: 0.7;
+}
+
+.lesson-student-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Modal Title */
+.lesson-student-modal__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: #5677fb;
+  margin: 0 0 32px 0;
+  text-align: left;
+}
+
+/* Modal Content */
+.lesson-student-modal__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Panel */
+.lesson-student-modal__left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Search Bar */
+.lesson-student-modal__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lesson-student-modal__search-input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.62);
+  border: none;
+  border-bottom: 1px solid rgba(86, 119, 251, 0.3);
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  transition: border-bottom-color 0.2s;
+}
+
+.lesson-student-modal__search-input:focus {
+  border-bottom-color: #5677FB;
+  border-bottom-width: 2px;
+}
+
+.lesson-student-modal__search-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.lesson-student-modal__search-icon {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+}
+
+/* Tabs */
+.lesson-student-modal__tabs {
+  display: flex;
+  gap: 24px;
+}
+
+.lesson-student-modal__tab {
+  background: transparent;
+  border: none;
+  padding: 8px 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.62);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.lesson-student-modal__tab:hover {
+  color: #5677fb;
+}
+
+.lesson-student-modal__tab--active {
+  color: #5677fb;
+}
+
+.lesson-student-modal__tab--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: #5677fb;
+}
+
+/* Student List */
+.lesson-student-modal__list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 8px;
+}
+
+.lesson-student-modal__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lesson-student-modal__list::-webkit-scrollbar-track {
+  background: rgba(86, 119, 251, 0.1);
+  border-radius: 3px;
+}
+
+.lesson-student-modal__list::-webkit-scrollbar-thumb {
+  background: #5677fb;
+  border-radius: 3px;
+}
+
+.lesson-student-modal__list::-webkit-scrollbar-thumb:hover {
+  background: #4566e8;
+}
+
+/* Student Row */
+.lesson-student-modal__row {
+  width: 100%;
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px 140px 100px 100px 40px;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: none;
+}
+
+.lesson-student-modal__row:hover:not(:disabled) {
+  background: transparent;
+  border-radius: 0;
+}
+
+.lesson-student-modal__row:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lesson-student-modal__row--active {
+  background: transparent;
+}
+
+.lesson-student-modal__row--active .lesson-student-modal__row-indicator {
+  background: #5677FB;
+}
+
+.lesson-student-modal__row-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid #5677FB;
+  flex-shrink: 0;
+}
+
+.lesson-student-modal__row-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lesson-student-modal__row-name {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: rgba(30, 30, 30, 0.50);
+  text-align: left;
+}
+
+.lesson-student-modal__row-meta {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(30, 30, 30, 0.50);
+  text-align: left;
+}
+
+.lesson-student-modal__row-meta--wide {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lesson-student-modal__row-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: transparent;
+  border-radius: 0;
+}
+
+/* Right Panel */
+.lesson-student-modal__right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.lesson-student-modal__right::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lesson-student-modal__right::-webkit-scrollbar-track {
+  background: rgba(86, 119, 251, 0.1);
+  border-radius: 3px;
+}
+
+.lesson-student-modal__right::-webkit-scrollbar-thumb {
+  background: #5677fb;
+  border-radius: 3px;
+}
+
+.lesson-student-modal__right::-webkit-scrollbar-thumb:hover {
+  background: #4566e8;
+}
+
+/* Student Profile */
+.lesson-student-modal__profile {
+  width: auto;
+  min-width: 166px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.lesson-student-modal__profile-avatar {
+  width: 166px;
+  height: 166px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #5677fb;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.lesson-student-modal__profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+}
+
+.lesson-student-modal__profile-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #5677fb;
+  text-align: center;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.lesson-student-modal__profile-position {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.62);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Student Details */
+.lesson-student-modal__details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+  margin-bottom: 32px;
+}
+
+.lesson-student-modal__detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(86, 119, 251, 0.2);
+}
+
+.lesson-student-modal__detail-row--last {
+  border-bottom: 2px solid #5677fb;
+  padding-bottom: 16px;
+}
+
+.lesson-student-modal__details--registered {
+  margin-top: 0;
+  margin-bottom: 32px;
+}
+
+.lesson-student-modal__details--registered .lesson-student-modal__detail-row {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* No Registration Message */
+.lesson-student-modal__no-registration {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: rgba(86, 119, 251, 0.37);
+  text-align: center;
+  margin: 40px 0;
+  line-height: 1.4;
+}
+
+.lesson-student-modal__detail-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #5677fb;
+}
+
+.lesson-student-modal__detail-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+/* Assign Button */
+.lesson-student-modal__assign-btn {
+  background: #5677FB;
+  border: none;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: auto;
+}
+
+.lesson-student-modal__assign-btn:hover:not(:disabled) {
+  background: #4566e8;
+}
+
+.lesson-student-modal__assign-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.lesson-student-modal__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .lesson-student-modal-overlay {
+    padding: 20px;
+  }
+
+  .lesson-student-modal {
+    max-width: 95vw;
+    height: calc(100vh - 40px);
+    max-height: 90vh;
+    padding: 24px;
+  }
+
+  .lesson-student-modal__title {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  .lesson-student-modal__content {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .lesson-student-modal__right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .lesson-student-modal-overlay {
+    padding: 10px;
+  }
+
+  .lesson-student-modal {
+    height: calc(100vh - 20px);
+    padding: 16px;
+  }
+
+  .lesson-student-modal__title {
+    font-size: 24px;
+  }
+
+  .lesson-student-modal__row {
+    grid-template-columns: 36px 1fr 40px;
+    gap: 12px;
+  }
+
+  .lesson-student-modal__row-meta--wide,
+  .lesson-student-modal__row-meta:nth-child(4),
+  .lesson-student-modal__row-meta:nth-child(5) {
+    display: none;
+  }
+}
+

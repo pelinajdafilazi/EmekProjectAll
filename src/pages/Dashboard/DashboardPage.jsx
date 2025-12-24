@@ -37,9 +37,31 @@ export default function DashboardPage() {
   const [lessonsLoading, setLessonsLoading] = useState(false);
   const [lessonsError, setLessonsError] = useState(null);
   // Ders oluşturulduğunda veya güncellendiğinde gönderilen groupId'leri sakla
-  const [lessonGroupIds, setLessonGroupIds] = useState({}); // { lessonId: groupId }
+  // localStorage'dan yükle
+  const loadLessonGroupIdsFromStorage = () => {
+    try {
+      const stored = localStorage.getItem('lessonGroupIds');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error('lessonGroupIds localStorage\'dan yüklenirken hata:', error);
+    }
+    return {};
+  };
+  const [lessonGroupIds, setLessonGroupIds] = useState(() => loadLessonGroupIdsFromStorage()); // { lessonId: groupId }
   // Ders öğrencileri state
   const [lessonStudents, setLessonStudents] = useState([]);
+  
+  // lessonGroupIds değiştiğinde localStorage'a kaydet
+  useEffect(() => {
+    try {
+      localStorage.setItem('lessonGroupIds', JSON.stringify(lessonGroupIds));
+      console.log('lessonGroupIds localStorage\'a kaydedildi:', lessonGroupIds);
+    } catch (error) {
+      console.error('lessonGroupIds localStorage\'a kaydedilirken hata:', error);
+    }
+  }, [lessonGroupIds]);
   
   // Students state
   const [students, setStudents] = useState([]);
@@ -169,13 +191,13 @@ export default function DashboardPage() {
     // Backend'den gelen tüm alanları logla (debug için)
     console.log('Transform Lesson - Full Backend Data:', JSON.stringify(backendLesson, null, 2));
     
-    // Grup ID'sini kontrol et - tüm olası alan adlarını kontrol et
+    // Grup ID'sini kontrol et - önce backendLesson'dan, sonra savedGroupIds'den
+    const lessonId = backendLesson.id || backendLesson.lessonId;
     const groupId = backendLesson.groupId 
-      || backendLesson.groupId 
       || backendLesson.group?.id 
-      || backendLesson.groupId
       || (backendLesson.group && typeof backendLesson.group === 'string' ? backendLesson.group : null)
-      || (backendLesson.group && typeof backendLesson.group === 'object' ? backendLesson.group.id : null);
+      || (backendLesson.group && typeof backendLesson.group === 'object' ? backendLesson.group.id : null)
+      || (lessonId && savedGroupIds[lessonId] ? savedGroupIds[lessonId] : null);
     
     console.log('Transform Lesson - Extracted GroupId:', groupId);
     console.log('Transform Lesson - Available Groups:', groups?.map(g => ({ id: g.id, name: g.name })));
@@ -188,10 +210,9 @@ export default function DashboardPage() {
       // Grup ID'sini string'e çevir ve eşleştir
       const lessonGroupIdStr = String(groupId).trim();
       
-      // Grup listesinde ara
+      // Grup listesinde ara - hem tam eşleşme hem de case-insensitive kontrol
       group = groups.find(g => {
         const gIdStr = String(g.id).trim();
-        // Hem tam eşleşme hem de case-insensitive kontrol
         return gIdStr === lessonGroupIdStr || gIdStr.toLowerCase() === lessonGroupIdStr.toLowerCase();
       });
       
@@ -251,6 +272,8 @@ export default function DashboardPage() {
       groupId: groupId || backendLesson.groupId, // Grup ID'sini sakla (filtreleme için)
       day: dayMappingEnToTr[backendLesson.startingDayOfWeek] || backendLesson.startingDayOfWeek || '-',
       time: formatTime(backendLesson.startingHour) || '-',
+      startingHour: formatTime(backendLesson.startingHour) || '-',
+      endingHour: formatTime(backendLesson.endingHour) || '-',
       capacity: backendLesson.capacity ? `${backendLesson.currentStudentCount || 0}/${backendLesson.capacity}` : '-',
       _backendData: backendLesson // Orijinal backend verisini sakla
     };
@@ -262,46 +285,74 @@ export default function DashboardPage() {
 
   // Load lessons from backend
   const loadLessons = async () => {
+    // Zaten yükleniyorsa tekrar yükleme
+    if (lessonsLoading) {
+      return;
+    }
+
     setLessonsLoading(true);
     setLessonsError(null);
     try {
-      // Önce grup listesinin yüklendiğinden emin ol
+      // Grup listesi yüklenmemişse yükleme (useEffect'te kontrol ediliyor)
       if (groupState.groups.length === 0) {
-        console.log('Load Lessons - Groups not loaded yet, loading groups first...');
-        await groupActions.loadGroups();
-        // Grupları yükledikten sonra state güncellenene kadar bekle
-        // useEffect ile tekrar çağrılacak
         setLessonsLoading(false);
         return;
       }
       
       const backendLessons = await getLessons();
       console.log('Load Lessons - Backend Response:', backendLessons);
-      console.log('Load Lessons - Backend Response (JSON):', JSON.stringify(backendLessons, null, 2));
-      console.log('Load Lessons - Available Groups:', groupState.groups);
-      console.log('Load Lessons - Groups Count:', groupState.groups.length);
       
-      // Backend'den gelen ders listesinde groupId yok, her ders için detay çekerek groupId'yi al
-      const lessonsWithDetails = await Promise.all(
-        Array.isArray(backendLessons) 
-          ? backendLessons.map(async (lesson) => {
-              try {
-                // Her ders için detay çek
-                const lessonDetail = await getLessonById(lesson.id);
-                console.log(`Lesson ${lesson.id} detail:`, lessonDetail);
-                // Detaydan groupId'yi al ve lesson objesine ekle
-                return {
-                  ...lesson,
-                  groupId: lessonDetail.groupId || lessonDetail.group?.id || null
-                };
-              } catch (error) {
-                console.warn(`Lesson ${lesson.id} detail çekilemedi:`, error);
-                // Hata durumunda orijinal lesson'ı döndür
-                return lesson;
-              }
-            })
-          : []
-      );
+      // Backend'den gelen ders listesinde groupId yoksa, her ders için detay çekerek groupId'yi al
+      // Ancak sadece groupId yoksa detay çek, aksi halde gereksiz API çağrısı yapma
+      let lessonsWithDetails = [];
+      
+      if (Array.isArray(backendLessons) && backendLessons.length > 0) {
+        // Önce hangi derslerin groupId'si eksik kontrol et
+        const lessonsNeedingDetails = backendLessons.filter(lesson => 
+          !lesson.groupId && !lesson.group?.id && !lessonGroupIds[lesson.id]
+        );
+        
+        // Sadece groupId'si eksik olan dersler için detay çek
+        if (lessonsNeedingDetails.length > 0) {
+          console.log(`Loading details for ${lessonsNeedingDetails.length} lessons without groupId...`);
+          const detailsPromises = lessonsNeedingDetails.map(async (lesson) => {
+            try {
+              const lessonDetail = await getLessonById(lesson.id);
+              return {
+                ...lesson,
+                groupId: lessonDetail.groupId || lessonDetail.group?.id || null
+              };
+            } catch (error) {
+              console.warn(`Lesson ${lesson.id} detail çekilemedi:`, error);
+              return lesson;
+            }
+          });
+          
+          const lessonsWithDetailsArray = await Promise.all(detailsPromises);
+          
+          // Detay çekilen dersleri güncelle, diğerlerini olduğu gibi bırak
+          lessonsWithDetails = backendLessons.map(lesson => {
+            const detailedLesson = lessonsWithDetailsArray.find(dl => dl.id === lesson.id);
+            if (detailedLesson) {
+              return detailedLesson;
+            }
+            // Eğer lessonGroupIds'de varsa onu kullan
+            if (lessonGroupIds[lesson.id]) {
+              return {
+                ...lesson,
+                groupId: lessonGroupIds[lesson.id]
+              };
+            }
+            return lesson;
+          });
+        } else {
+          // Tüm derslerin groupId'si var, detay çekmeye gerek yok
+          lessonsWithDetails = backendLessons.map(lesson => ({
+            ...lesson,
+            groupId: lesson.groupId || lesson.group?.id || lessonGroupIds[lesson.id] || null
+          }));
+        }
+      }
       
       console.log('Load Lessons - Lessons with Details:', lessonsWithDetails);
       
@@ -322,6 +373,32 @@ export default function DashboardPage() {
       
       console.log('Load Lessons - Transformed Lessons:', transformedLessons);
       setLessons(transformedLessons);
+      
+      // Backend'den gelen tüm derslerin groupId'lerini lessonGroupIds'e ekle
+      // Bu sayfa yenilendiğinde grup bilgileri korunur
+      if (Array.isArray(lessonsWithDetails) && lessonsWithDetails.length > 0) {
+        const newLessonGroupIds = { ...lessonGroupIds };
+        let hasNewGroupIds = false;
+        
+        lessonsWithDetails.forEach(lesson => {
+          const lessonId = lesson.id || lesson.lessonId;
+          const groupId = lesson.groupId || lesson.group?.id;
+          
+          if (lessonId && groupId) {
+            // Mevcut değer yoksa veya farklıysa güncelle
+            if (!newLessonGroupIds[lessonId] || newLessonGroupIds[lessonId] !== groupId) {
+              newLessonGroupIds[lessonId] = groupId;
+              hasNewGroupIds = true;
+            }
+          }
+        });
+        
+        // Eğer yeni groupId'ler varsa state'i güncelle
+        if (hasNewGroupIds) {
+          setLessonGroupIds(newLessonGroupIds);
+          console.log('Load Lessons - Updated lessonGroupIds:', newLessonGroupIds);
+        }
+      }
       
       // Mevcut seçili ders ID'sini sakla
       const currentSelectedId = selectedLessonId;
@@ -347,55 +424,40 @@ export default function DashboardPage() {
     }
   };
 
-  // Load lessons when Dersler view is active
+  // Load lessons when Dersler view is active - tek bir useEffect ile birleştirildi
   useEffect(() => {
-    if (activeView === 'Dersler') {
-      // Gruplar yüklüyse dersleri yükle
-      if (groupState.groups.length > 0) {
-        loadLessons();
-      } else {
-        // Gruplar henüz yüklenmemişse önce grupları yükle
-        groupActions.loadGroups();
-      }
+    // Sadece Dersler görünümündeyken çalış
+    if (activeView !== 'Dersler') {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeView, groupState.groups.length]);
-  
-  // Gruplar yüklendikten sonra dersleri yükle
-  useEffect(() => {
-    if (activeView === 'Dersler' && groupState.groups.length > 0 && lessons.length === 0 && !lessonsLoading) {
-      loadLessons();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeView, groupState.groups.length]);
 
-  // Gruplar yüklendiğinde ve Dersler görünümündeyse dersleri yeniden yükle (grup isimleri için)
-  useEffect(() => {
-    if (activeView === 'Dersler' && groupState.groups.length > 0) {
-      // Gruplar yüklendiğinde dersleri yeniden yükle (grup isimleri güncellenmiş olabilir)
-      if (lessons.length > 0) {
-        // Mevcut dersleri grup bilgileriyle yeniden transform et
-        const backendLessons = lessons.map(l => l._backendData).filter(Boolean);
-        if (backendLessons.length > 0) {
-          console.log('Re-transforming lessons with updated groups:', {
-            lessonsCount: backendLessons.length,
-            groupsCount: groupState.groups.length,
-            groups: groupState.groups.map(g => ({ id: g.id, name: g.name }))
-          });
-          const transformedLessons = backendLessons.map(lesson => transformLesson(lesson, groupState.groups, lessonGroupIds));
-          console.log('Re-transformed lessons:', transformedLessons.map(l => ({ name: l.name, group: l.group, groupId: l.groupId })));
-          setLessons(transformedLessons);
-        } else {
-          // Eğer backend data yoksa yeniden yükle
-          loadLessons();
-        }
-      } else {
-        // Dersler henüz yüklenmemişse yükle
-        loadLessons();
-      }
+    // Zaten yükleniyorsa tekrar yükleme
+    if (lessonsLoading) {
+      return;
+    }
+
+    // Gruplar yüklenmemişse önce grupları yükle ve çık
+    if (groupState.groups.length === 0) {
+      groupActions.loadGroups();
+      return;
+    }
+
+    // Gruplar yüklü ve dersler yüklenmemişse yükle
+    if (lessons.length === 0) {
+      loadLessons();
+      return;
+    }
+
+    // Gruplar güncellendiğinde mevcut dersleri yeniden transform et (API çağrısı yapmadan)
+    // Sadece grup bilgileri güncellendiğinde transform et, her grup değişikliğinde API çağrısı yapma
+    const backendLessons = lessons.map(l => l._backendData).filter(Boolean);
+    if (backendLessons.length > 0) {
+      // Sadece transform et, API çağrısı yapma
+      const transformedLessons = backendLessons.map(lesson => transformLesson(lesson, groupState.groups, lessonGroupIds));
+      setLessons(transformedLessons);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupState.groups, activeView]);
+  }, [activeView, groupState.groups.length]); // lessons.length'i dependency'den çıkardık - sonsuz döngüyü önlemek için
 
   // Handle lesson creation
   const handleLessonCreated = ({ lessonId, groupId }) => {
@@ -453,17 +515,38 @@ export default function DashboardPage() {
     || backendLessonData?.groupId 
     || (lessonIdForGroup ? lessonGroupIds[lessonIdForGroup] : null);
   
-  // Grup listesinden grup ismini bul
-  const selectedLessonGroup = selectedLessonGroupId 
-    ? groupState.groups.find(g => String(g.id) === String(selectedLessonGroupId))
-    : null;
+  // Grup listesinden grup ismini bul - daha güvenilir eşleştirme
+  let selectedLessonGroup = null;
+  let selectedLessonGroupName = '-';
+  
+  if (selectedLessonGroupId && groupState.groups && groupState.groups.length > 0) {
+    const lessonGroupIdStr = String(selectedLessonGroupId).trim();
+    selectedLessonGroup = groupState.groups.find(g => {
+      const gIdStr = String(g.id).trim();
+      return gIdStr === lessonGroupIdStr || gIdStr.toLowerCase() === lessonGroupIdStr.toLowerCase();
+    });
+    
+    if (selectedLessonGroup) {
+      selectedLessonGroupName = selectedLessonGroup.name;
+    } else {
+      // Grup bulunamadıysa lesson'dan gelen grup adını kullan
+      selectedLessonGroupName = selectedLessonData?.group || backendLessonData?.group?.name || 'Grup Bulunamadı';
+    }
+  } else if (selectedLessonGroupId) {
+    // Grup ID var ama grup listesi yok
+    selectedLessonGroupName = selectedLessonData?.group || backendLessonData?.group?.name || 'Grup Yükleniyor...';
+  } else {
+    // Grup ID yok - lesson'dan gelen grup adını kullan
+    selectedLessonGroupName = selectedLessonData?.group || backendLessonData?.group?.name || '-';
+  }
   
   const selectedLesson = selectedLessonData ? {
     id: selectedLessonData.id,
     lessonId: lessonIdForGroup,
     name: selectedLessonData.name,
-    groupName: selectedLessonGroup?.name || selectedLessonData.group || backendLessonData?.group?.name || '-',
-    groupId: selectedLessonGroupId,
+    group: selectedLessonGroupName, // Grup adını ekle
+    groupName: selectedLessonGroupName, // Geriye dönük uyumluluk için
+    groupId: selectedLessonGroupId, // Grup ID'sini sakla
     day: selectedLessonData.day,
     startingHour: formatTimeForDisplay(backendLessonData?.startingHour || selectedLessonData.time),
     endingHour: formatTimeForDisplay(backendLessonData?.endingHour),
@@ -578,6 +661,7 @@ export default function DashboardPage() {
               students={currentLessonStudents}
               onLessonUpdated={handleLessonUpdated}
               onStudentsUpdated={setLessonStudents}
+              lessonGroupIds={lessonGroupIds}
             />
             <AddLessonModal
               isOpen={isAddLessonModalOpen}
