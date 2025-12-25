@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import { registerLocale } from 'react-datepicker';
+import tr from 'date-fns/locale/tr';
+import { ChevronDown } from 'lucide-react';
+import 'react-datepicker/dist/react-datepicker.css';
 import * as GroupService from '../../../services/groupService';
+
+registerLocale('tr', tr);
 
 function StudentAvatar({ photo, name }) {
   return (
@@ -9,8 +16,9 @@ function StudentAvatar({ photo, name }) {
   );
 }
 
-export default function PaymentListPanel({ students, selectedId, onSelect, groups = [], loading = false }) {
+export default function PaymentListPanel({ students, selectedId, onSelect, groups = [], loading = false, onDateChange, onGeneralClick }) {
   const [selectedGroupFilter, setSelectedGroupFilter] = useState(null); // null = Tüm Grup
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Seçilen tarih
   const [filteredStudents, setFilteredStudents] = useState(students);
   const [groupStudentsMap, setGroupStudentsMap] = useState(new Map()); // Grup ID -> Öğrenci ID'leri
   const [studentGroupMap, setStudentGroupMap] = useState(new Map()); // Öğrenci ID -> Grup adı
@@ -89,6 +97,24 @@ export default function PaymentListPanel({ students, selectedId, onSelect, group
 
   const handleGroupFilterClick = (groupId) => {
     setSelectedGroupFilter(groupId);
+    // Tarih ve grup değiştiğinde parent component'e bildir
+    if (onDateChange) {
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth() + 1; // JavaScript'te ay 0-11, backend'de 1-12
+      // Tüm Grup seçildiyse null gönder (backend tüm gruplar için veri dönecek)
+      onDateChange(groupId, year, month);
+    }
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    // Tarih değiştiğinde parent component'e bildir
+    if (onDateChange) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1; // JavaScript'te ay 0-11, backend'de 1-12
+      // selectedGroupFilter null ise tüm gruplar için veri çekilecek
+      onDateChange(selectedGroupFilter, year, month);
+    }
   };
 
   return (
@@ -125,8 +151,25 @@ export default function PaymentListPanel({ students, selectedId, onSelect, group
       </div>
 
       <div className="dash-left__months">
-        <button type="button" className="dash-left__month-dropdown">
-          Tüm Aylar ▼
+        <label className="dash-left__date-label">Tarih Seç</label>
+        <div className="dash-left__date-picker-wrapper">
+          <ChevronDown size={16} className="dash-left__date-picker-icon" />
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            locale="tr"
+            dateFormat="MMMM yyyy"
+            showMonthYearPicker
+            placeholderText="Tarih seçin"
+            className="dash-left__date-picker"
+          />
+        </div>
+        <button
+          type="button"
+          className="dash-left__general-btn"
+          onClick={onGeneralClick}
+        >
+          Toplam Borca Göre Listele
         </button>
       </div>
 

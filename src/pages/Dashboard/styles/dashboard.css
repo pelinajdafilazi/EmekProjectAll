@@ -2066,8 +2066,204 @@
 /* Payment List Panel - Left Side */
 .dash-left__months {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
   margin-bottom: 16px;
+}
+
+.dash-left__general-btn {
+  width: auto;
+  min-width: 80px;
+  padding: 8px 16px;
+  background: #5677FB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+.dash-left__general-btn:hover {
+  background: #4566e8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(86, 119, 251, 0.3);
+}
+
+.dash-left__general-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(86, 119, 251, 0.2);
+}
+
+.dash-left__date-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5677FB;
+}
+
+.dash-left__date-picker-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+
+
+.dash-left__date-picker {
+  width: auto;
+  min-width: 0;
+  padding: 6px 0;
+  border: none;
+  border-radius: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000000;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.dash-left__date-picker:focus {
+  outline: none;
+}
+
+.dash-left__date-picker-icon {
+  color: #5677FB;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/* DatePicker wrapper styles for payment list */
+.dash-left__months .react-datepicker-wrapper {
+  width: auto;
+  display: inline-block;
+  position: relative;
+}
+
+.dash-left__months .react-datepicker-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  height: 1px;
+  background: rgba(86, 119, 251, 0.3);
+  transition: all 0.2s;
+}
+
+.dash-left__months .react-datepicker-wrapper:focus-within::after {
+  background: #5677FB;
+  height: 2px;
+  width: 45%;
+}
+
+.dash-left__months .react-datepicker__input-container {
+  width: auto;
+  display: inline-block;
+  position: relative;
+}
+
+.dash-left__months .react-datepicker__input-container input {
+  width: auto;
+  min-width: 0;
+  padding: 6px 0;
+  border: none;
+  border-radius: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000000;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.dash-left__months .react-datepicker__input-container input:focus {
+  outline: none;
+}
+
+/* DatePicker popup styles for payment list */
+.dash-left .react-datepicker {
+  font-family: 'Montserrat', sans-serif;
+  border: 2px solid #5677FB;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(86, 119, 251, 0.2);
+}
+
+.dash-left .react-datepicker__header {
+  background: #5677FB;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding-top: 8px;
+}
+
+.dash-left .react-datepicker__current-month,
+.dash-left .react-datepicker__day-name {
+  color: #FFFFFF;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.dash-left .react-datepicker__day {
+  font-family: 'Montserrat', sans-serif;
+  color: #000000;
+}
+
+.dash-left .react-datepicker__day--selected,
+.dash-left .react-datepicker__day--keyboard-selected {
+  background: #5677FB;
+  color: #FFFFFF;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.dash-left .react-datepicker__day:hover {
+  background: rgba(86, 119, 251, 0.1);
+  border-radius: 4px;
+}
+
+.dash-left .react-datepicker__day--selected:hover {
+  background: #4566e8;
+}
+
+.dash-left .react-datepicker__navigation-icon::before {
+  border-color: #FFFFFF;
+}
+
+.dash-left .react-datepicker__year-dropdown,
+.dash-left .react-datepicker__month-dropdown {
+  background: #FFFFFF;
+  border: 1px solid #5677FB;
+  border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.dash-left .react-datepicker__year-option:hover,
+.dash-left .react-datepicker__month-option:hover {
+  background: rgba(86, 119, 251, 0.1);
+}
+
+.dash-left .react-datepicker__year-option--selected,
+.dash-left .react-datepicker__month-option--selected {
+  background: #5677FB;
+  color: #FFFFFF;
+}
+
+.dash-left .react-datepicker__day--outside-month {
+  color: #9ca3af;
+}
+
+.dash-left .react-datepicker__triangle {
+  display: none;
 }
 
 .dash-left__month-dropdown {
@@ -2142,7 +2338,35 @@
 
 /* Payment Details Panel - Specific Styles */
 .dash-right--payment .dash-top {
-  margin-left: 90px;
+  margin-left: 0;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 60px;
+}
+
+.dash-right--payment .dash-profile {
+  flex-shrink: 0;
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dash-right--payment .dash-profile__name {
+  white-space: normal;
+  word-wrap: break-word;
+  text-align: center;
+  width: 100%;
+  max-width: 250px;
+}
+
+.dash-right--payment .dash-top__info {
+  display: flex;
+  justify-content: center;
+  flex: 0 0 auto;
 }
 
 /* Payment Details Panel - Right Side */
@@ -2201,8 +2425,9 @@
 }
 
 .payment-table__body {
-  max-height: 280px;
-  overflow-y: hidden;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: transparent;
 }
 
@@ -2254,6 +2479,30 @@
 }
 
 .payment-table__input:focus {
+  background-color: rgba(86, 119, 251, 0.1);
+  border-radius: 4px;
+}
+
+.payment-table__date-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: inherit;
+  text-align: center;
+  padding: 4px 8px;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.payment-table__date-input:hover {
+  background-color: rgba(86, 119, 251, 0.05);
+}
+
+.payment-table__date-input:focus {
   background-color: rgba(86, 119, 251, 0.1);
   border-radius: 4px;
 }
@@ -2359,6 +2608,30 @@
 
 .payment-table__cell .react-datepicker__input-container {
   width: 100%;
+}
+
+.payment-table__cell .react-datepicker__input-container input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: inherit;
+  text-align: center;
+  padding: 4px 8px;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.payment-table__cell .react-datepicker__input-container input:hover {
+  background-color: rgba(86, 119, 251, 0.05);
+}
+
+.payment-table__cell .react-datepicker__input-container input:focus {
+  background-color: rgba(86, 119, 251, 0.1);
+  border-radius: 4px;
 }
 
 /* Custom DatePicker for Payment Modal */
@@ -2530,8 +2803,8 @@
   background: #FFFFFF;
   border: 3px solid #5677FB;
   border-radius: 24px;
-  width: 90%;
-  max-width: 750px;
+  width: 95%;
+  max-width: 1200px;
   max-height: 90vh;
   overflow-y: hidden;
   padding: 40px;
@@ -2689,6 +2962,343 @@
 
 .payment-modal__save-btn:hover {
   opacity: 0.9;
+}
+
+/* ===========================================
+   ADD PAYMENT MODAL STYLES
+=========================================== */
+
+.add-payment-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.add-payment-modal {
+  position: relative;
+  background: #FFFFFF;
+  border: 3px solid #5677FB;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.add-payment-modal__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.add-payment-modal__close:hover {
+  opacity: 0.7;
+}
+
+.add-payment-modal__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #5677FB;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.add-payment-modal__student {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(86, 119, 251, 0.2);
+}
+
+.add-payment-modal__avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #5677FB;
+  flex-shrink: 0;
+}
+
+.add-payment-modal__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.add-payment-modal__name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #5677FB;
+  flex: 1;
+}
+
+.add-payment-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.add-payment-modal__error {
+  background: #FEE2E2;
+  color: #EF4444;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.add-payment-modal__form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-payment-modal__form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.add-payment-modal__label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #5677FB;
+}
+
+.add-payment-modal__required {
+  color: #EF4444;
+}
+
+.add-payment-modal__date-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #5677FB;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-payment-modal__date-input:focus {
+  outline: none;
+  border-color: #4566e8;
+  box-shadow: 0 0 0 3px rgba(86, 119, 251, 0.1);
+}
+
+.add-payment-modal__currency-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.add-payment-modal__input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 60px;
+  border: 2px solid #5677FB;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+  background: #FFFFFF;
+  transition: all 0.2s;
+}
+
+.add-payment-modal__input:focus {
+  outline: none;
+  border-color: #4566e8;
+  box-shadow: 0 0 0 3px rgba(86, 119, 251, 0.1);
+}
+
+.add-payment-modal__currency {
+  position: absolute;
+  right: 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #5677FB;
+  pointer-events: none;
+}
+
+.add-payment-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.add-payment-modal__cancel-btn {
+  background: transparent;
+  border: 2px solid #5677FB;
+  color: #5677FB;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 12px 32px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-payment-modal__cancel-btn:hover:not(:disabled) {
+  background: rgba(86, 119, 251, 0.1);
+}
+
+.add-payment-modal__cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-payment-modal__submit-btn {
+  background: #22C55E;
+  border: none;
+  color: #FFFFFF;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  padding: 12px 40px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
+.add-payment-modal__submit-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.add-payment-modal__submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* DatePicker styles for Add Payment Modal */
+.add-payment-modal .react-datepicker {
+  font-family: 'Montserrat', sans-serif;
+  border: 2px solid #5677FB;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(86, 119, 251, 0.2);
+}
+
+.add-payment-modal .react-datepicker__header {
+  background: #5677FB;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding-top: 8px;
+}
+
+.add-payment-modal .react-datepicker__current-month,
+.add-payment-modal .react-datepicker__day-name {
+  color: #FFFFFF;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.add-payment-modal .react-datepicker__day {
+  font-family: 'Montserrat', sans-serif;
+  color: #000000;
+}
+
+.add-payment-modal .react-datepicker__day--selected,
+.add-payment-modal .react-datepicker__day--keyboard-selected {
+  background: #5677FB;
+  color: #FFFFFF;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.add-payment-modal .react-datepicker__day:hover {
+  background: rgba(86, 119, 251, 0.1);
+  border-radius: 4px;
+}
+
+.add-payment-modal .react-datepicker__day--selected:hover {
+  background: #4566e8;
+}
+
+.add-payment-modal .react-datepicker__navigation-icon::before {
+  border-color: #FFFFFF;
+}
+
+.add-payment-modal .react-datepicker__year-dropdown,
+.add-payment-modal .react-datepicker__month-dropdown {
+  background: #FFFFFF;
+  border: 1px solid #5677FB;
+  border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.add-payment-modal .react-datepicker__year-option:hover,
+.add-payment-modal .react-datepicker__month-option:hover {
+  background: rgba(86, 119, 251, 0.1);
+}
+
+.add-payment-modal .react-datepicker__year-option--selected,
+.add-payment-modal .react-datepicker__month-option--selected {
+  background: #5677FB;
+  color: #FFFFFF;
+}
+
+.add-payment-modal .react-datepicker__day--outside-month {
+  color: #9ca3af;
+}
+
+.add-payment-modal .react-datepicker__triangle {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .add-payment-modal {
+    max-width: 95%;
+    padding: 24px;
+  }
+
+  .add-payment-modal__form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .add-payment-modal__actions {
+    flex-direction: column;
+  }
+
+  .add-payment-modal__cancel-btn,
+  .add-payment-modal__submit-btn {
+    width: 100%;
+  }
 }
 
 /* Attendance Toggle Styles */

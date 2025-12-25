@@ -20,6 +20,7 @@ import { useGroups } from '../../context/GroupContext';
 import { StudentService } from '../../services/studentService';
 import { getLessons, getLessonById } from '../../services/lessonService';
 import { PaymentService } from '../../services/paymentService';
+import * as GroupService from '../../services/groupService';
 
 export default function DashboardPage() {
   const { state: groupState, actions: groupActions } = useGroups();
@@ -108,37 +109,162 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView]);
 
+  // Seçilen grup ve tarih için borç bilgilerini yükle
+  const [selectedPaymentGroupId, setSelectedPaymentGroupId] = useState(null);
+  const [selectedPaymentDate, setSelectedPaymentDate] = useState({ year: new Date().getFullYear(), month: new Date().getMonth() + 1 });
+  const [isDateFilterActive, setIsDateFilterActive] = useState(false); // Tarih filtresi aktif mi?
+
+  const loadGroupPeriodDebts = async (groupId, year, month) => {
+    // Ay ve yıl değerlerini sayıya çevir (güvenlik için)
+    const yearNumber = typeof year === 'string' ? parseInt(year, 10) : Number(year);
+    const monthNumber = typeof month === 'string' ? parseInt(month, 10) : Number(month);
+    
+    setPaymentStudentsLoading(true);
+    setPaymentStudentsError(null);
+    try {
+      // Backend'den grup ve tarih aralığına göre borç bilgilerini çek
+      // groupId null ise tüm gruplar için veri çekilecek
+      // Ay ve yıl sayı olarak gönderiliyor (1-12 arası ay, yıl tam sayı)
+      const debts = await PaymentService.getGroupPeriodDebts(groupId, yearNumber, monthNumber);
+      
+      // Backend'den tüm öğrencileri çek (detay bilgileri için)
+      const backendStudents = await StudentService.getAllStudents();
+      const studentMap = new Map();
+      backendStudents.forEach(student => {
+        studentMap.set(student.id, student);
+      });
+      
+      // Borç bilgilerini map'e al (hızlı erişim için)
+      const debtMap = new Map();
+      debts.forEach(debt => {
+        if (debt.studentId) {
+          debtMap.set(debt.studentId, debt);
+        }
+      });
+      
+      // Grup filtresi varsa grup öğrencilerini al
+      let studentsToProcess = backendStudents;
+      if (groupId) {
+        const groupStudents = await GroupService.getGroupStudents(groupId);
+        const groupStudentIds = new Set();
+        groupStudents.forEach(gs => {
+          groupStudentIds.add(gs.id || gs._backendData?.id);
+        });
+        studentsToProcess = backendStudents.filter(student => 
+          groupStudentIds.has(student.id)
+        );
+      }
+      
+      // Backend'den gelen borç bilgilerini öğrenci formatına dönüştür
+      const studentsWithDebts = studentsToProcess.map((student) => {
+        const debt = debtMap.get(student.id);
+        
+        // Seçilen ay için borç kontrolü
+        // hasDebtMonth true ise veya debtAmountForFilteredMonth > 0 ise ödenmedi
+        // hasDebtMonth null geliyorsa debtAmountForFilteredMonth kontrolü yapılmalı
+        const debtAmount = debt?.debtAmountForFilteredMonth;
+        const hasDebtForSelectedMonth = debt?.hasDebtMonth === true || 
+          (debtAmount !== null && 
+           debtAmount !== undefined && 
+           !isNaN(debtAmount) &&
+           debtAmount > 0);
+        const paymentStatus = hasDebtForSelectedMonth ? 'unpaid' : 'paid';
+        
+        // Backend'den gelen öğrenci bilgilerini kullan, yoksa backend'den gelen bilgileri kullan
+        return {
+          ...student,
+          paymentStatus,
+          totalDebt: debtAmount || 0,
+          debtInfo: {
+            hasDebtTotal: debt?.hasDebtTotal || false,
+            hasDebtMonth: debt?.hasDebtMonth || false,
+            debtAmountForFilteredMonth: debtAmount || 0,
+            dueDateForFilteredMonth: debt?.dueDateForFilteredMonth || null
+          },
+          payments: [] // Backend'den gelen borç bilgileri kullanılacak
+        };
+      });
+      
+      setPaymentStudents(studentsWithDebts);
+      
+      // İlk öğrenciyi otomatik seç
+      if (studentsWithDebts.length > 0 && !selectedPaymentStudentId) {
+        setSelectedPaymentStudentId(studentsWithDebts[0].id);
+      }
+    } catch (error) {
+      console.error('Grup ve tarih aralığı borç bilgileri yüklenirken hata:', error);
+      setPaymentStudentsError(error.message || 'Borç bilgileri yüklenirken bir hata oluştu');
+      setPaymentStudents([]);
+    } finally {
+      setPaymentStudentsLoading(false);
+    }
+  };
+
   // Load payment students from backend
-  const loadPaymentStudents = async () => {
+  const loadPaymentStudents = async (forceGeneralView = false) => {
     setPaymentStudentsLoading(true);
     setPaymentStudentsError(null);
     try {
       // Backend'den tüm öğrencileri çek
       const backendStudents = await StudentService.getAllStudents();
       
-      // Her öğrenci için ödeme bilgilerini çek ve durumu hesapla
-      const studentsWithPayments = await Promise.all(
-        backendStudents.map(async (student) => {
-          try {
-            const payments = await PaymentService.getStudentPayments(student.id);
-            const paymentStatus = PaymentService.calculatePaymentStatus(payments);
-            
-            return {
-              ...student,
-              paymentStatus,
-              payments // Ödeme detayları için sakla
-            };
-          } catch (error) {
-            console.error(`Öğrenci ${student.id} ödeme bilgileri yüklenirken hata:`, error);
-            // Hata durumunda unpaid olarak işaretle
-            return {
-              ...student,
-              paymentStatus: 'unpaid',
-              payments: []
-            };
-          }
-        })
-      );
+      let studentsWithPayments = [];
+      
+      // Tarih filtresi aktifse seçilen ay için borç kontrolü yap (forceGeneralView true ise atla)
+      if (!forceGeneralView && isDateFilterActive && selectedPaymentDate.year && selectedPaymentDate.month) {
+        // Tarih filtresi aktifse grup filtresi olmadan tüm öğrenciler için borç kontrolü yap
+        const debts = await PaymentService.getGroupPeriodDebts(null, selectedPaymentDate.year, selectedPaymentDate.month);
+        const debtMap = new Map();
+        debts.forEach(debt => {
+          debtMap.set(debt.studentId, debt);
+        });
+        
+        // Her öğrenci için seçilen ay için borç kontrolü yap
+        studentsWithPayments = backendStudents.map(student => {
+          const debt = debtMap.get(student.id);
+          
+          // Seçilen ay için borç kontrolü
+          const hasDebtForSelectedMonth = debt?.hasDebtMonth === true || (debt?.debtAmountForFilteredMonth !== null && debt?.debtAmountForFilteredMonth !== undefined && debt.debtAmountForFilteredMonth > 0);
+          const paymentStatus = hasDebtForSelectedMonth ? 'unpaid' : 'paid';
+          
+          return {
+            ...student,
+            paymentStatus,
+            totalDebt: debt?.debtAmountForFilteredMonth || 0,
+            payments: []
+          };
+        });
+      } else {
+        // Tarih filtresi yoksa toplam borç bilgisini çek
+        studentsWithPayments = await Promise.all(
+          backendStudents.map(async (student) => {
+            try {
+              // Backend'den öğrencinin toplam borç bilgisini çek
+              const paymentData = await PaymentService.getStudentPaymentDetails(student.id);
+              const totalDebt = paymentData?.totalDebt || 0;
+              
+              // Toplam borç 0 ise ödendi, 0'dan büyükse ödenmedi
+              const paymentStatus = totalDebt === 0 ? 'paid' : 'unpaid';
+              
+              return {
+                ...student,
+                paymentStatus,
+                totalDebt,
+                payments: paymentData?.debts || [] // Ödeme detayları için sakla
+              };
+            } catch (error) {
+              console.error(`Öğrenci ${student.id} ödeme bilgileri yüklenirken hata:`, error);
+              // Hata durumunda unpaid olarak işaretle
+              return {
+                ...student,
+                paymentStatus: 'unpaid',
+                totalDebt: 0,
+                payments: []
+              };
+            }
+          })
+        );
+      }
       
       setPaymentStudents(studentsWithPayments);
       
@@ -155,6 +281,135 @@ export default function DashboardPage() {
     }
   };
 
+  const handlePaymentDateChange = async (groupId, year, month) => {
+    if (!year || !month) {
+      // Tarih seçilmediyse normal yükleme yap
+      setIsDateFilterActive(false);
+      loadPaymentStudents();
+      return;
+    }
+    
+    // Ay ve yıl değerlerini sayıya çevir (güvenlik için)
+    const yearNumber = typeof year === 'string' ? parseInt(year, 10) : Number(year);
+    const monthNumber = typeof month === 'string' ? parseInt(month, 10) : Number(month);
+    
+    setSelectedPaymentGroupId(groupId);
+    setSelectedPaymentDate({ year: yearNumber, month: monthNumber });
+    setIsDateFilterActive(true); // Tarih filtresi aktif
+    
+    // Ay ve yıla göre tüm öğrenciler için borç kontrolü yap
+    setPaymentStudentsLoading(true);
+    setPaymentStudentsError(null);
+    try {
+      // Backend'den tüm öğrencileri çek
+      const backendStudents = await StudentService.getAllStudents();
+      
+      // Her öğrenci için ödeme bilgilerini çek ve seçilen ay/yıl ile karşılaştır
+      const studentsWithPayments = await Promise.all(
+        backendStudents.map(async (student) => {
+            try {
+            // Öğrencinin tüm ödemelerini çek (/api/Debts/student/{studentId})
+            const response = await PaymentService.getStudentPayments(student.id);
+            const debts = response || [];
+            
+            // Seçilen ay/yıl için borç kontrolü
+            // dueDate'i parse et ve ay/yıl ile karşılaştır
+            let hasDebtForSelectedMonth = false;
+            let debtAmountForMonth = 0;
+            
+            debts.forEach(debt => {
+              if (debt.dueDate) {
+                const dueDate = new Date(debt.dueDate);
+                const debtYear = dueDate.getFullYear();
+                const debtMonth = dueDate.getMonth() + 1; // JavaScript'te 0-11, bizde 1-12
+                
+                // Seçilen ay/yıl ile eşleşiyor mu?
+                if (debtYear === yearNumber && debtMonth === monthNumber) {
+                  // Bu ay/yıl için borç var mı? (isPaid: false veya deptAmount > 0)
+                  const isPaid = debt.isPaid || false;
+                  const deptAmount = debt.deptAmount || 0;
+                  
+                  if (!isPaid || deptAmount > 0) {
+                    hasDebtForSelectedMonth = true;
+                    debtAmountForMonth += deptAmount;
+                  }
+                }
+              }
+            });
+            
+            const paymentStatus = hasDebtForSelectedMonth ? 'unpaid' : 'paid';
+            
+            return {
+              ...student,
+              paymentStatus,
+              totalDebt: debtAmountForMonth,
+              debtInfo: {
+                hasDebtTotal: debtAmountForMonth > 0,
+                hasDebtMonth: hasDebtForSelectedMonth,
+                debtAmountForFilteredMonth: debtAmountForMonth,
+                dueDateForFilteredMonth: null
+              },
+              payments: []
+            };
+          } catch (error) {
+            console.error(`Öğrenci ${student.id} ödeme bilgileri yüklenirken hata:`, error);
+            // Hata durumunda ödeme yapıldı olarak işaretle
+            return {
+              ...student,
+              paymentStatus: 'paid',
+              totalDebt: 0,
+              debtInfo: {
+                hasDebtTotal: false,
+                hasDebtMonth: false,
+                debtAmountForFilteredMonth: 0,
+                dueDateForFilteredMonth: null
+              },
+              payments: []
+            };
+          }
+        })
+      );
+      
+      // Grup filtresi varsa öğrencileri filtrele
+      let filteredStudents = studentsWithPayments;
+      if (groupId) {
+        // Grup öğrencilerini al
+        const groupStudents = await GroupService.getGroupStudents(groupId);
+        const groupStudentIds = new Set();
+        groupStudents.forEach(gs => {
+          groupStudentIds.add(gs.id || gs._backendData?.id);
+        });
+        
+        filteredStudents = studentsWithPayments.filter(student => 
+          groupStudentIds.has(student.id)
+        );
+      }
+      
+      setPaymentStudents(filteredStudents);
+      
+      // İlk öğrenciyi otomatik seç
+      if (filteredStudents.length > 0 && !selectedPaymentStudentId) {
+        setSelectedPaymentStudentId(filteredStudents[0].id);
+      }
+    } catch (error) {
+      console.error('Ay ve yıla göre borç bilgileri yüklenirken hata:', error);
+      setPaymentStudentsError(error.message || 'Borç bilgileri yüklenirken bir hata oluştu');
+      setPaymentStudents([]);
+    } finally {
+      setPaymentStudentsLoading(false);
+    }
+  };
+
+  const handleGeneralClick = () => {
+    // Genel butonuna basıldığında tarih filtresini kaldır ve tüm yıl için toplam borç bilgisini göster
+    setIsDateFilterActive(false);
+    setSelectedPaymentDate({ year: null, month: null });
+    setSelectedPaymentGroupId(null);
+    
+    // forceGeneralView parametresi ile tarih filtresini atla ve doğrudan toplam borç bilgisini çek
+    loadPaymentStudents(true);
+  };
+
   // Load groups and payment students when Ödemeler view is active
   useEffect(() => {
     if (activeView === 'Ödemeler') {
@@ -166,6 +421,22 @@ export default function DashboardPage() {
       loadPaymentStudents();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView]);
+
+  // Listen for payment update events
+  useEffect(() => {
+    if (activeView === 'Ödemeler') {
+      const handlePaymentUpdated = () => {
+        // Ödeme güncellendiğinde öğrencileri yeniden yükle
+        loadPaymentStudents();
+      };
+      
+      window.addEventListener('paymentUpdated', handlePaymentUpdated);
+      
+      return () => {
+        window.removeEventListener('paymentUpdated', handlePaymentUpdated);
+      };
+    }
   }, [activeView]);
 
   // Listen for student creation events (both same-tab custom event and cross-tab storage event)
@@ -752,6 +1023,8 @@ export default function DashboardPage() {
               onSelect={setSelectedPaymentStudentId}
               groups={groupState.groups}
               loading={paymentStudentsLoading}
+              onDateChange={handlePaymentDateChange}
+              onGeneralClick={handleGeneralClick}
             />
             <PaymentDetailsPanel student={selectedPaymentStudent} />
           </>
