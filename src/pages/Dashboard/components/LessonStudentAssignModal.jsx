@@ -3,6 +3,7 @@ import { X, Search } from 'lucide-react';
 import { getStudentsWithoutLesson, getLessonStudents } from '../../../services/lessonService';
 import { StudentService } from '../../../services/studentService';
 import { transformBackendToStudent } from '../../../services/studentService';
+import * as GroupService from '../../../services/groupService';
 
 export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, lessonId = null }) {
   const [activeTab, setActiveTab] = useState('without-lesson');
@@ -12,6 +13,7 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lessonStudentIds, setLessonStudentIds] = useState(new Set()); // Derse kayıtlı öğrenci ID'leri
+  const [studentGroupMap, setStudentGroupMap] = useState(new Map()); // Öğrenci ID -> Grup adı
 
   // Derse kayıtlı öğrencileri yükle
   useEffect(() => {
@@ -39,6 +41,53 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
       loadLessonStudents();
     }
   }, [isOpen, lessonId]);
+
+  // Gruplardaki öğrencileri yükle ve mapping oluştur
+  useEffect(() => {
+    const loadGroupStudents = async () => {
+      if (!isOpen) return;
+      
+      const studentToGroupMap = new Map(); // Öğrenci ID -> Grup adı
+      
+      try {
+        const groups = await GroupService.getGroups();
+        
+        for (const group of groups) {
+          try {
+            const groupStudents = await GroupService.getGroupStudents(group.id);
+            // Öğrenci ID'lerini Map'e ekle (hem id hem de nationalId'yi kontrol et)
+            groupStudents.forEach(student => {
+              const studentId = student.id || student._backendData?.id;
+              const studentNationalId = student.profile?.tc || student._backendData?.nationalId;
+              
+              if (studentId) {
+                studentToGroupMap.set(String(studentId), group.name);
+              }
+              if (studentNationalId && studentNationalId !== '-') {
+                studentToGroupMap.set(String(studentNationalId), group.name);
+              }
+              if (student._backendData?.id) {
+                studentToGroupMap.set(String(student._backendData.id), group.name);
+              }
+              if (student._backendData?.nationalId) {
+                studentToGroupMap.set(String(student._backendData.nationalId), group.name);
+              }
+            });
+          } catch (error) {
+            console.error(`Grup ${group.id} öğrencileri yüklenirken hata:`, error);
+          }
+        }
+        
+        setStudentGroupMap(studentToGroupMap);
+      } catch (error) {
+        console.error('Gruplar yüklenirken hata:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadGroupStudents();
+    }
+  }, [isOpen]);
 
   // Load students when modal opens
   useEffect(() => {
@@ -192,6 +241,13 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
                   const studentId = String(student.id || '');
                   const isRegistered = lessonStudentIds.has(studentId);
                   
+                  // Öğrencinin grup bilgisini al
+                  const studentGroupName = studentGroupMap.get(studentId) || 
+                                          studentGroupMap.get(student.nationalId) ||
+                                          studentGroupMap.get(student._backendData?.id) ||
+                                          studentGroupMap.get(student._backendData?.nationalId) ||
+                                          '-';
+                  
                   return (
                     <button
                       key={student.id}
@@ -205,7 +261,7 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
                       </div>
                       <div className="lesson-student-modal__row-name">{studentName}</div>
                       <div className="lesson-student-modal__row-meta">
-                        {isRegistered ? 'Kayıtlı' : '-'}
+                        {studentGroupName}
                       </div>
                       <div className="lesson-student-modal__row-meta lesson-student-modal__row-meta--wide">
                         {studentBranch}
@@ -303,4 +359,5 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
     </div>
   );
 }
+
 

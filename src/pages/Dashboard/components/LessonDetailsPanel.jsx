@@ -200,6 +200,15 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
         }
       }
       
+      // Parent component'e bildir - ders listesi yenilensin (kapasite güncellenmesi için)
+      if (onLessonUpdated) {
+        const groupId = getLessonGroupId(lesson);
+        onLessonUpdated({ 
+          lessonId: lessonId,
+          groupId: groupId || lesson.groupId 
+        });
+      }
+      
       // Modal'ı kapat
       setIsModalOpen(false);
     } catch (err) {
@@ -363,8 +372,10 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
 
     try {
       const lessonId = lesson.lessonId || lesson.id;
-      console.log('Ders siliniyor - Lesson ID:', lessonId);
-      await deleteLesson(lessonId);
+      // lessonGroupIds'den groupId'yi al (eğer varsa)
+      const groupIdFromStorage = lessonId ? lessonGroupIds[lessonId] : null;
+      console.log('Ders siliniyor - Lesson ID:', lessonId, 'GroupId from storage:', groupIdFromStorage);
+      await deleteLesson(lessonId, groupIdFromStorage);
       
       // Parent component'e bildir (ders silindi, liste yenilensin)
       if (onLessonUpdated) {
@@ -602,7 +613,38 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
         </div>
 
         <div className="lesson-students">
-          <h2 className="lesson-students__title">Öğrenci Listesi</h2>
+          <div className="lesson-students__header">
+            <h2 className="lesson-students__title">Öğrenci Listesi</h2>
+            {(() => {
+              // Mevcut öğrenci sayısı
+              const currentCount = lessonStudents.length;
+              
+              // Toplam kapasiteyi al - önce lesson.capacity'den, sonra _backendData'dan
+              let totalCapacity = null;
+              if (lesson.capacity) {
+                // Eğer "5/20" formatındaysa, sadece toplam kapasiteyi al
+                if (typeof lesson.capacity === 'string' && lesson.capacity.includes('/')) {
+                  totalCapacity = parseInt(lesson.capacity.split('/')[1], 10);
+                } else if (typeof lesson.capacity === 'number') {
+                  totalCapacity = lesson.capacity;
+                }
+              }
+              
+              // Backend data'dan da kontrol et
+              if (!totalCapacity && lesson._backendData?.capacity) {
+                totalCapacity = parseInt(lesson._backendData.capacity, 10);
+              }
+              
+              // Kapasite formatını oluştur
+              const capacityDisplay = totalCapacity !== null && !isNaN(totalCapacity)
+                ? `${currentCount}/${totalCapacity}`
+                : (lesson.capacity || '-');
+              
+              return (
+                <div className="lesson-students__capacity">{capacityDisplay}</div>
+              );
+            })()}
+          </div>
           <div className="dash-list" role="list">
             {lessonStudents.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>

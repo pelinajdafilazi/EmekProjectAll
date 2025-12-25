@@ -302,13 +302,19 @@ export default function DashboardPage() {
       const backendLessons = await getLessons();
       console.log('Load Lessons - Backend Response:', backendLessons);
       
+      // Sadece isActive: true olan dersleri filtrele (soft delete için)
+      const activeLessons = Array.isArray(backendLessons) 
+        ? backendLessons.filter(lesson => lesson.isActive !== false) // isActive undefined veya true ise göster
+        : [];
+      console.log('Load Lessons - Active Lessons (filtered):', activeLessons);
+      
       // Backend'den gelen ders listesinde groupId yoksa, her ders için detay çekerek groupId'yi al
       // Ancak sadece groupId yoksa detay çek, aksi halde gereksiz API çağrısı yapma
       let lessonsWithDetails = [];
       
-      if (Array.isArray(backendLessons) && backendLessons.length > 0) {
+      if (Array.isArray(activeLessons) && activeLessons.length > 0) {
         // Önce hangi derslerin groupId'si eksik kontrol et
-        const lessonsNeedingDetails = backendLessons.filter(lesson => 
+        const lessonsNeedingDetails = activeLessons.filter(lesson => 
           !lesson.groupId && !lesson.group?.id && !lessonGroupIds[lesson.id]
         );
         
@@ -331,7 +337,7 @@ export default function DashboardPage() {
           const lessonsWithDetailsArray = await Promise.all(detailsPromises);
           
           // Detay çekilen dersleri güncelle, diğerlerini olduğu gibi bırak
-          lessonsWithDetails = backendLessons.map(lesson => {
+          lessonsWithDetails = activeLessons.map(lesson => {
             const detailedLesson = lessonsWithDetailsArray.find(dl => dl.id === lesson.id);
             if (detailedLesson) {
               return detailedLesson;
@@ -347,7 +353,7 @@ export default function DashboardPage() {
           });
         } else {
           // Tüm derslerin groupId'si var, detay çekmeye gerek yok
-          lessonsWithDetails = backendLessons.map(lesson => ({
+          lessonsWithDetails = activeLessons.map(lesson => ({
             ...lesson,
             groupId: lesson.groupId || lesson.group?.id || lessonGroupIds[lesson.id] || null
           }));

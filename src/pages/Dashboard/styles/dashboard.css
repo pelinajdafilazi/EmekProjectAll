@@ -407,6 +407,7 @@
 
 .dash-row--lessons .dash-row__meta--attendance {
   text-align: left;
+  color: #5677fb;
 }
 
 .dash-row:hover {
@@ -1945,12 +1946,29 @@
   height: fit-content;
 }
 
+.lesson-students__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  width: 100%;
+  position: relative;
+}
+
 .lesson-students__title {
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 18px;
   color: #5677FB;
-  margin-bottom: 16px;
+  margin: 0;
+}
+
+.lesson-students__capacity {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: #5677fb;
+  flex-shrink: 0;
 }
 
 .lesson-student-row {
