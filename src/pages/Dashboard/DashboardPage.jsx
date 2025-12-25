@@ -19,6 +19,7 @@ import { mockGroups } from '../../data/mockGroups';
 import { useGroups } from '../../context/GroupContext';
 import { StudentService } from '../../services/studentService';
 import { getLessons, getLessonById } from '../../services/lessonService';
+import { PaymentService } from '../../services/paymentService';
 
 export default function DashboardPage() {
   const { state: groupState, actions: groupActions } = useGroups();
@@ -70,6 +71,11 @@ export default function DashboardPage() {
   const [selectedStudentDetails, setSelectedStudentDetails] = useState(null);
   const [studentDetailsLoading, setStudentDetailsLoading] = useState(false);
 
+  // Payment students state
+  const [paymentStudents, setPaymentStudents] = useState([]);
+  const [paymentStudentsLoading, setPaymentStudentsLoading] = useState(false);
+  const [paymentStudentsError, setPaymentStudentsError] = useState(null);
+
   // Load students from backend
   const loadStudents = async () => {
     setStudentsLoading(true);
@@ -98,6 +104,66 @@ export default function DashboardPage() {
       if (groupState.groups.length === 0) {
         groupActions.loadGroups();
       }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView]);
+
+  // Load payment students from backend
+  const loadPaymentStudents = async () => {
+    setPaymentStudentsLoading(true);
+    setPaymentStudentsError(null);
+    try {
+      // Backend'den tüm öğrencileri çek
+      const backendStudents = await StudentService.getAllStudents();
+      
+      // Her öğrenci için ödeme bilgilerini çek ve durumu hesapla
+      const studentsWithPayments = await Promise.all(
+        backendStudents.map(async (student) => {
+          try {
+            const payments = await PaymentService.getStudentPayments(student.id);
+            const paymentStatus = PaymentService.calculatePaymentStatus(payments);
+            
+            return {
+              ...student,
+              paymentStatus,
+              payments // Ödeme detayları için sakla
+            };
+          } catch (error) {
+            console.error(`Öğrenci ${student.id} ödeme bilgileri yüklenirken hata:`, error);
+            // Hata durumunda unpaid olarak işaretle
+            return {
+              ...student,
+              paymentStatus: 'unpaid',
+              payments: []
+            };
+          }
+        })
+      );
+      
+      setPaymentStudents(studentsWithPayments);
+      
+      // İlk öğrenciyi otomatik seç
+      if (studentsWithPayments.length > 0 && !selectedPaymentStudentId) {
+        setSelectedPaymentStudentId(studentsWithPayments[0].id);
+      }
+    } catch (error) {
+      console.error('Ödeme öğrencileri yüklenirken hata:', error);
+      setPaymentStudentsError(error.message || 'Öğrenciler yüklenirken bir hata oluştu');
+      setPaymentStudents([]);
+    } finally {
+      setPaymentStudentsLoading(false);
+    }
+  };
+
+  // Load groups and payment students when Ödemeler view is active
+  useEffect(() => {
+    if (activeView === 'Ödemeler') {
+      // Grupları yükle (filtreleme için)
+      if (groupState.groups.length === 0) {
+        groupActions.loadGroups();
+      }
+      // Öğrencileri yükle
+      loadPaymentStudents();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView]);
@@ -562,7 +628,9 @@ export default function DashboardPage() {
   } : (mockLessonDetails[selectedLessonId] || null);
   // Ders öğrencileri - state'ten al, yoksa mock data kullan
   const currentLessonStudents = lessonStudents.length > 0 ? lessonStudents : (mockLessonStudents[selectedLessonId] || []);
-  const selectedPaymentStudent = mockPaymentDetails[selectedPaymentStudentId] || null;
+  
+  // Seçili ödeme öğrencisi - backend'den gelen verilerden bul
+  const selectedPaymentStudent = paymentStudents.find(s => String(s.id) === String(selectedPaymentStudentId)) || null;
   
   // Attendance data based on selected group
   const selectedAttendanceGroup = mockGroups.find(g => g.id === selectedAttendanceGroupId);
@@ -679,9 +747,11 @@ export default function DashboardPage() {
         {activeView === 'Ödemeler' && (
           <>
             <PaymentListPanel
-              students={mockPaymentStudents}
+              students={paymentStudents}
               selectedId={selectedPaymentStudentId}
               onSelect={setSelectedPaymentStudentId}
+              groups={groupState.groups}
+              loading={paymentStudentsLoading}
             />
             <PaymentDetailsPanel student={selectedPaymentStudent} />
           </>

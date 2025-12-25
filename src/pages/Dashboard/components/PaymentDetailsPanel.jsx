@@ -131,7 +131,7 @@ export default function PaymentDetailsPanel({ student }) {
   return (
     <>
       <section className="dash-right dash-right--payment">
-        <div className="payment-header">Ödeme Bilgisi</div>
+        <div className="group-header">Ödeme Bilgisi</div>
 
         <div className="dash-top">
           <ProfileAvatar photo={photo} name={name} />
