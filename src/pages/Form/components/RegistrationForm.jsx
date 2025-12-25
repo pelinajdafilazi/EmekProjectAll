@@ -1,10 +1,12 @@
-import React, { forwardRef, useState, useCallback } from 'react';
+import React, { forwardRef, useState, useCallback, useEffect } from 'react';
 import { useForm } from '../../../context/FormContext';
 import { exportToPDF, exportToDOCX } from '../../../utils/exportUtils';
 import { FormService } from '../../../services/form';
+import { ImageService } from '../../../services/imageService';
 import WebcamCapture from './WebcamCapture';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import tr from 'date-fns/locale/tr';
+import { useDropzone } from 'react-dropzone';
 import 'react-datepicker/dist/react-datepicker.css';
 
 // Türkçe dil desteği
@@ -112,8 +114,59 @@ const RegistrationForm = forwardRef((props, ref) => {
   const [showWebcam, setShowWebcam] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [studentId, setStudentId] = useState(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = React.useRef(null);
   const yakinlarSectionRef = React.useRef(null);
+
+  // Load existing profile image when student ID is available
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      // Try to get student ID from TC Kimlik No if available
+      const tcNo = sporcu.tcKimlikNo;
+      
+      if (tcNo && tcNo.length === 11) {
+        try {
+          const existingImage = await ImageService.getProfileImage(tcNo);
+          if (existingImage && !photo) {
+            // Only set if we don't already have a photo in context
+            actions.setPhoto(existingImage);
+          }
+          setStudentId(tcNo);
+        } catch (error) {
+          // Silently fail - student might not exist yet
+          console.log('No existing profile image found');
+        }
+      }
+    };
+
+    loadProfileImage();
+  }, [sporcu.tcKimlikNo, photo, actions]);
+
+  // Dropzone configuration
+  const onDrop = useCallback(async (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      try {
+        const base64Image = await ImageService.fileToBase64(file);
+        actions.setPhoto(base64Image);
+        setShowPhotoOptions(false);
+      } catch (error) {
+        alert(error.message || 'Resim yüklenirken hata oluştu');
+      }
+    }
+  }, [actions]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
+    },
+    maxFiles: 1,
+    maxSize: 5242880, // 5MB
+    noClick: true, // Disable click to open file dialog (we'll handle it manually)
+    noKeyboard: true
+  });
 
   const handleSporcuChange = useCallback((field, value) => {
     actions.updateSporcu({ [field]: value });
@@ -177,10 +230,29 @@ const RegistrationForm = forwardRef((props, ref) => {
   const handleSaveForm = useCallback(async () => {
     setIsSaving(true);
     try {
+      // Save form data first
       const result = await FormService.saveForm({
         ...state.formData,
         createdAt: state.formData.createdAt || new Date().toISOString()
       });
+      
+      // Get student ID from result or use TC Kimlik No
+      const savedStudentId = result.data?.id || result.data?.studentId || sporcu.tcKimlikNo;
+      
+      // Upload profile image if exists
+      if (photo && savedStudentId) {
+        try {
+          setIsUploadingImage(true);
+          await ImageService.uploadProfileImage(savedStudentId, photo);
+          setStudentId(savedStudentId);
+        } catch (imageError) {
+          console.error('Image upload error:', imageError);
+          // Don't fail the whole operation if image upload fails
+          alert('Form kaydedildi ancak resim yüklenirken bir sorun oluştu: ' + imageError.message);
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
       
       // Success - trigger reload in dashboard (using custom event for same-tab and storage event for cross-tab)
       const event = new CustomEvent('studentCreated', { detail: { timestamp: Date.now() } });
@@ -195,7 +267,7 @@ const RegistrationForm = forwardRef((props, ref) => {
       alert(error.message || 'Form kaydedilirken bir hata oluştu.');
     }
     setIsSaving(false);
-  }, [state.formData]);
+  }, [state.formData, photo, sporcu.tcKimlikNo]);
 
   const handleExportPDF = useCallback(async () => {
     if (ref.current) {
@@ -221,8 +293,8 @@ const RegistrationForm = forwardRef((props, ref) => {
     <>
       {/* Export Buttons - Top */}
       <div className="form-export-header">
-        <button className="export-btn-top save-btn" onClick={handleSaveForm} disabled={isSaving}>
-          <SaveIcon /> {isSaving ? 'Kaydediliyor...' : 'Verileri Kaydet'}
+        <button className="export-btn-top save-btn" onClick={handleSaveForm} disabled={isSaving || isUploadingImage}>
+          <SaveIcon /> {isSaving ? 'Kaydediliyor...' : isUploadingImage ? 'Resim Yükleniyor...' : 'Verileri Kaydet'}
         </button>
         <button className="export-btn-top yakin-ekle-header-btn" onClick={handleAddYakin}>
           <PlusIcon /> Yakın Ekle
@@ -250,11 +322,21 @@ const RegistrationForm = forwardRef((props, ref) => {
             <p className="club-address"><LocationIcon /> {settings.address}</p>
             <p className="club-phone"><PhoneIcon /> {settings.phone}</p>
           </div>
-          <div className="photo-area" onClick={handlePhotoAreaClick}>
+          <div 
+            {...getRootProps()} 
+            className={`photo-area ${isDragActive ? 'drag-active' : ''}`} 
+            onClick={handlePhotoAreaClick}
+          >
+            <input {...getInputProps()} />
             {photo ? (
               <img src={photo} alt="Sporcu Fotoğrafı" />
             ) : (
               <span className="camera-icon"><CameraIcon /></span>
+            )}
+            {isDragActive && (
+              <div className="drag-overlay">
+                Resmi buraya bırakın
+              </div>
             )}
           </div>
         </div>
@@ -586,7 +668,7 @@ const RegistrationForm = forwardRef((props, ref) => {
               <button className="yakinlar-circle-btn" onClick={handleAddYakin} title="Yeni Yakın Ekle">
                 <PlusIcon />
               </button>
-              <button className="yakinlar-circle-btn save" onClick={handleSaveForm} disabled={isSaving} title="Verileri Kaydet">
+              <button className="yakinlar-circle-btn save" onClick={handleSaveForm} disabled={isSaving || isUploadingImage} title="Verileri Kaydet">
                 <SaveIcon />
               </button>
             </div>
