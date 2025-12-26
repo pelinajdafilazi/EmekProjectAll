@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import GroupTable from './GroupTable';
-import { mockGroups } from '../../../data/mockGroups';
 
 export default function AttendanceListPanel({ groups, selectedId, onSelect }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Use provided groups or fall back to mockGroups
-  const groupsToDisplay = groups || mockGroups;
-
   // Filter groups based on search query
-  const filteredGroups = groupsToDisplay.filter(group =>
+  const filteredGroups = (groups || []).filter(group =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

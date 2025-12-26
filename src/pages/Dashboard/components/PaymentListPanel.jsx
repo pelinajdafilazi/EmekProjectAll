@@ -5,13 +5,14 @@ import tr from 'date-fns/locale/tr';
 import { ChevronDown } from 'lucide-react';
 import 'react-datepicker/dist/react-datepicker.css';
 import * as GroupService from '../../../services/groupService';
+import StudentImage from './StudentImage';
 
 registerLocale('tr', tr);
 
-function StudentAvatar({ photo, name }) {
+function StudentAvatar({ student, name }) {
   return (
     <div className="dash-row__avatar">
-      <img src={photo} alt={name} />
+      <StudentImage student={student} alt={name} />
     </div>
   );
 }

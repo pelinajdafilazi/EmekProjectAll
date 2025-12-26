@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import * as GroupService from '../../../services/groupService';
+import StudentImage from './StudentImage';
 
-function StudentAvatar({ photo, name }) {
+function StudentAvatar({ student, name }) {
   return (
     <div className="dash-row__avatar">
-      <img src={photo} alt={name} />
+      <StudentImage student={student} alt={name} />
     </div>
   );
 }
@@ -143,7 +144,7 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
               className={`dash-row ${active ? 'dash-row--active' : ''}`}
               onClick={() => onSelect?.(s.id)}
             >
-              <StudentAvatar photo={s.photo} name={s.name} />
+              <StudentAvatar student={s} name={s.name} />
               <div className="dash-row__name">{s.name}</div>
               <div className="dash-row__meta">{studentGroup}</div>
               <div className="dash-row__meta">{studentBranch}</div>

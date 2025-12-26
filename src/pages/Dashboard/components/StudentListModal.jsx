@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Search } from 'lucide-react';
 import * as GroupService from '../../../services/groupService';
 import { StudentService } from '../../../services/studentService';
+import StudentImage from './StudentImage';
 
 export default function StudentListModal({ isOpen, onClose, onAssign, lessonId = null }) {
   const [activeTab, setActiveTab] = useState('without-group');
@@ -186,7 +187,6 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                 filteredStudents.map((student) => {
                   // Transform edilmiş öğrenci verilerini kullan
                   const studentName = student.name || 'İsimsiz Öğrenci';
-                  const studentPhoto = student.photo || '/avatars/student-1.svg';
                   const studentAge = student.age !== '-' ? student.age : '-';
                   const studentBranch = student.team || student.branch || '-';
                   
@@ -205,7 +205,7 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                     >
                       <div className="student-modal__row-indicator" aria-hidden="true" />
                       <div className="student-modal__row-avatar">
-                        <img src={studentPhoto} alt={studentName} />
+                        <StudentImage student={student} alt={studentName} />
                       </div>
                       <div className="student-modal__row-name">{studentName}</div>
                       <div className="student-modal__row-meta">{studentGroup}</div>
@@ -226,8 +226,8 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
               <>
                 <div className="student-modal__profile">
                   <div className="student-modal__profile-avatar">
-                    <img 
-                      src={selectedStudent.photo || selectedStudent.photoUrl || '/avatars/student-1.svg'} 
+                    <StudentImage 
+                      student={selectedStudent}
                       alt={selectedStudent.name || `${selectedStudent.firstName} ${selectedStudent.lastName}`} 
                     />
                   </div>

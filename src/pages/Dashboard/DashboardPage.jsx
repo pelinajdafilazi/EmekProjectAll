@@ -14,7 +14,7 @@ import AttendanceListPanel from './components/AttendanceListPanel';
 import AttendanceDetailsPanel from './components/AttendanceDetailsPanel';
 import { mockLessons, mockLessonDetails, mockLessonStudents } from '../../data/mockLessons';
 import { mockPaymentStudents, mockPaymentDetails } from '../../data/mockPayments';
-import { mockAttendanceLessonsByGroup, mockAttendanceStudentsByGroup } from '../../data/mockAttendance';
+import { mockAttendanceLessonsByGroup } from '../../data/mockAttendance';
 import { mockGroups } from '../../data/mockGroups';
 import { useGroups } from '../../context/GroupContext';
 import { StudentService } from '../../services/studentService';
@@ -30,6 +30,8 @@ export default function DashboardPage() {
   const [selectedLessonId, setSelectedLessonId] = useState('1');
   const [selectedPaymentStudentId, setSelectedPaymentStudentId] = useState('1');
   const [selectedAttendanceGroupId, setSelectedAttendanceGroupId] = useState('1');
+  const [attendanceStudents, setAttendanceStudents] = useState([]);
+  const [attendanceStudentsLoading, setAttendanceStudentsLoading] = useState(false);
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
   const [isAddLessonModalOpen, setIsAddLessonModalOpen] = useState(false);
   const [groupsLoaded, setGroupsLoaded] = useState(false);
@@ -904,9 +906,73 @@ export default function DashboardPage() {
   const selectedPaymentStudent = paymentStudents.find(s => String(s.id) === String(selectedPaymentStudentId)) || null;
   
   // Attendance data based on selected group
-  const selectedAttendanceGroup = mockGroups.find(g => g.id === selectedAttendanceGroupId);
-  const selectedAttendanceLesson = mockAttendanceLessonsByGroup[selectedAttendanceGroupId] || null;
-  const attendanceStudents = mockAttendanceStudentsByGroup[selectedAttendanceGroupId] || [];
+  const selectedAttendanceGroup = groupState.groups.find(g => g.id === selectedAttendanceGroupId);
+  
+  // Find lesson for selected group - use real lesson data from backend
+  const selectedAttendanceLessonData = selectedAttendanceGroupId && lessonsToDisplay.length > 0
+    ? lessonsToDisplay.find(l => {
+        const lessonGroupId = l.groupId || l._backendData?.groupId || (l.id && lessonGroupIds[l.id]);
+        return lessonGroupId && String(lessonGroupId) === String(selectedAttendanceGroupId);
+      })
+    : null;
+
+  // Format lesson for attendance display (only name, day, capacity)
+  const selectedAttendanceLesson = selectedAttendanceLessonData ? {
+    id: selectedAttendanceLessonData.id,
+    name: selectedAttendanceLessonData.name || '-',
+    day: selectedAttendanceLessonData.day || '-',
+    capacity: selectedAttendanceLessonData.capacity 
+      ? (typeof selectedAttendanceLessonData.capacity === 'string' 
+          ? selectedAttendanceLessonData.capacity.split('/')[1] || selectedAttendanceLessonData.capacity
+          : String(selectedAttendanceLessonData.capacity))
+      : (selectedAttendanceLessonData._backendData?.capacity 
+          ? String(selectedAttendanceLessonData._backendData.capacity)
+          : '-'),
+    date: selectedAttendanceLessonData._backendData?.date || new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')
+  } : null;
+
+  // Load students for selected attendance group
+  useEffect(() => {
+    const loadAttendanceStudents = async () => {
+      if (!selectedAttendanceGroupId || activeView !== 'Yoklamalar') {
+        setAttendanceStudents([]);
+        return;
+      }
+
+      setAttendanceStudentsLoading(true);
+      try {
+        const students = await GroupService.getGroupStudents(selectedAttendanceGroupId);
+        setAttendanceStudents(students || []);
+      } catch (error) {
+        console.error('Öğrenciler yüklenirken hata:', error);
+        setAttendanceStudents([]);
+      } finally {
+        setAttendanceStudentsLoading(false);
+      }
+    };
+
+    loadAttendanceStudents();
+  }, [selectedAttendanceGroupId, activeView]);
+
+  // Load groups and lessons when Yoklamalar view is active
+  useEffect(() => {
+    if (activeView === 'Yoklamalar') {
+      // Load groups if not loaded
+      if (groupState.groups.length === 0) {
+        groupActions.loadGroups();
+      }
+      // Load lessons if not loaded and groups are available
+      if (groupState.groups.length > 0 && lessons.length === 0 && !lessonsLoading) {
+        loadLessons();
+      }
+      // Set first group as selected when groups are loaded
+      if (groupState.groups.length > 0 && !selectedAttendanceGroupId) {
+        const firstGroup = groupState.groups[0];
+        setSelectedAttendanceGroupId(firstGroup.id);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView, groupState.groups, lessons.length, lessonsLoading]);
 
   // Load groups when Gruplar view is active (only once per view switch)
   useEffect(() => {
@@ -1032,7 +1098,7 @@ export default function DashboardPage() {
         {activeView === 'Yoklamalar' && (
           <>
             <AttendanceListPanel
-              groups={mockGroups}
+              groups={groupState.groups}
               selectedId={selectedAttendanceGroupId}
               onSelect={setSelectedAttendanceGroupId}
             />

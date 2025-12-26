@@ -4,6 +4,7 @@ import { getStudentsWithoutLesson, getLessonStudents } from '../../../services/l
 import { StudentService } from '../../../services/studentService';
 import { transformBackendToStudent } from '../../../services/studentService';
 import * as GroupService from '../../../services/groupService';
+import StudentImage from './StudentImage';
 
 export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, lessonId = null }) {
   const [activeTab, setActiveTab] = useState('without-lesson');
@@ -233,7 +234,6 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
                 filteredStudents.map((student) => {
                   // Transform edilmiş öğrenci verilerini kullan
                   const studentName = student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'İsimsiz Öğrenci';
-                  const studentPhoto = student.photo || student.photoUrl || '/avatars/student-1.svg';
                   const studentAge = student.age !== '-' ? student.age : '-';
                   const studentBranch = student.team || student.branch || '-';
                   
@@ -257,7 +257,7 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
                     >
                       <div className="lesson-student-modal__row-indicator" aria-hidden="true" />
                       <div className="lesson-student-modal__row-avatar">
-                        <img src={studentPhoto} alt={studentName} />
+                        <StudentImage student={student} alt={studentName} />
                       </div>
                       <div className="lesson-student-modal__row-name">{studentName}</div>
                       <div className="lesson-student-modal__row-meta">
@@ -280,8 +280,8 @@ export default function LessonStudentAssignModal({ isOpen, onClose, onAssign, le
               <>
                 <div className="lesson-student-modal__profile">
                   <div className="lesson-student-modal__profile-avatar">
-                    <img 
-                      src={selectedStudent.photo || selectedStudent.photoUrl || '/avatars/student-1.svg'} 
+                    <StudentImage 
+                      student={selectedStudent}
                       alt={selectedStudent.name || `${selectedStudent.firstName} ${selectedStudent.lastName}`} 
                     />
                   </div>

@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import StudentImage from './StudentImage';
 import { X, Plus } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import { registerLocale } from 'react-datepicker';
@@ -50,7 +51,6 @@ export default function PaymentOperationsModal({ isOpen, onClose, student }) {
   if (!isOpen) return null;
 
   const name = student?.name || '';
-  const photo = student?.photo || '/avatars/profile-large.svg';
   const studentId = student?.id || student?._backendData?.id;
 
   // Date objesini ISO string'e çevir
@@ -167,7 +167,7 @@ export default function PaymentOperationsModal({ isOpen, onClose, student }) {
 
         <div className="payment-modal__student">
           <div className="payment-modal__avatar">
-            <img src={photo} alt={name} />
+            <StudentImage student={student} alt={name} />
           </div>
           <div className="payment-modal__name">{name}</div>
           <button className="payment-modal__excel-btn">Excel Olarak İndir</button>

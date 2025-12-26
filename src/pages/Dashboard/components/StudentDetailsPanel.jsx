@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import StudentImage from './StudentImage';
 
-function ProfileAvatar({ photo, name }) {
+function ProfileAvatar({ student, name }) {
   return (
     <div className="dash-profile">
       <div className="dash-profile__avatar">
         <div className="dash-profile__avatarInner">
-          <img src={photo} alt={name} style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
+          <StudentImage 
+            student={student} 
+            alt={name} 
+            style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} 
+          />
         </div>
       </div>
       <div className="dash-profile__name">{name}</div>
@@ -181,7 +186,6 @@ export default function StudentDetailsPanel({ student, loading = false }) {
   }
 
   const name = student?.name || '—';
-  const photo = student?.photo || '/avatars/profile-large.svg';
   const parents = student?.parents || {};
   const relatives = Array.isArray(student?.relatives) ? student.relatives : [];
   const training = student?.trainingParticipation ?? 60;
@@ -202,7 +206,7 @@ export default function StudentDetailsPanel({ student, loading = false }) {
   return (
     <section className="dash-right">
       <div className="dash-top">
-        <ProfileAvatar photo={photo} name={name} />
+        <ProfileAvatar student={student} name={name} />
         <div className="dash-top__info">
           <InfoGrid profile={student?.profile} />
         </div>

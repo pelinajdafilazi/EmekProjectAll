@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import StudentListModal from './StudentListModal';
 import { useGroups } from '../../../context/GroupContext';
 import { StudentService } from '../../../services/studentService';
+import StudentImage from './StudentImage';
 
 // Helper function to parse age range string to min/max numbers (for backward compatibility)
 const parseAgeRange = (ageRangeString) => {
@@ -347,11 +348,6 @@ export default function GroupDetailsPanel({ group, students }) {
                                   (student?.student?.firstName && student?.student?.lastName ? `${student.student.firstName} ${student.student.lastName}`.trim() : '') ||
                                   'İsimsiz Öğrenci';
               
-              const studentPhoto = student?.photo || 
-                                  student?.photoUrl || 
-                                  student?.student?.photo ||
-                                  '/avatars/student-1.svg';
-              
               const studentAge = student?.age !== undefined && student?.age !== '-' ? student.age : '-';
               
               // Öğrenci ID'sini al
@@ -405,7 +401,7 @@ export default function GroupDetailsPanel({ group, students }) {
                 >
                   <div className="dash-row__indicator" aria-hidden="true" />
                   <div className="dash-row__avatar">
-                    <img src={studentPhoto} alt={studentName} />
+                    <StudentImage student={student} alt={studentName} />
                   </div>
                   <div className="dash-row__name">{studentName}</div>
                   <div className="dash-row__meta">{group?.name || '-'}</div>

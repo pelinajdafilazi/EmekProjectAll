@@ -4,6 +4,7 @@ import LessonStudentAssignModal from './LessonStudentAssignModal';
 import { useGroups } from '../../../context/GroupContext';
 import { updateLesson, assignStudentToLesson, getLessonStudents, deleteLesson } from '../../../services/lessonService';
 import { transformBackendToStudent, StudentService } from '../../../services/studentService';
+import StudentImage from './StudentImage';
 import '../styles/lesson-student-modal.css';
 
 // Türkçe gün isimlerini sayısal değere çevir (Backend sayısal değer bekliyor)
@@ -653,7 +654,6 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
             ) : (
               lessonStudents.map((student) => {
                 const studentName = student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'İsimsiz Öğrenci';
-                const studentPhoto = student.photo || student.photoUrl || '/avatars/student-1.svg';
                 const studentAge = student.age !== undefined && student.age !== '-' ? student.age : '-';
                 const studentTeam = student.team || student.branch || '-';
                 const studentBirthDate = student.birthDate || student.dateOfBirth || '-';
@@ -673,7 +673,7 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
                   >
                     <div className="dash-row__indicator" aria-hidden="true" />
                     <div className="dash-row__avatar">
-                      <img src={studentPhoto} alt={studentName} />
+                      <StudentImage student={student} alt={studentName} />
                     </div>
                     <div className="dash-row__name">{studentName}</div>
                     <div className="dash-row__meta">{groupName}</div>
