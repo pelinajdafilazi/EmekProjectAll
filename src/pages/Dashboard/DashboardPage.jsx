@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [activeView, setActiveView] = useState('Öğrenciler');
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
-  const [selectedLessonId, setSelectedLessonId] = useState('1');
+  const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [selectedPaymentStudentId, setSelectedPaymentStudentId] = useState('1');
   const [selectedAttendanceGroupId, setSelectedAttendanceGroupId] = useState('1');
   const [attendanceStudents, setAttendanceStudents] = useState([]);
@@ -751,13 +751,11 @@ export default function DashboardPage() {
       // Eğer seçili ders varsa ve listede hala varsa, onu koru
       if (currentSelectedId && transformedLessons.find(l => String(l.id) === String(currentSelectedId))) {
         // Ders hala listede, seçili kalması için bir şey yapma
-      } else if (transformedLessons.length > 0) {
-        // Seçili ders yoksa veya listede yoksa ilk dersi seç
-        setSelectedLessonId(transformedLessons[0].id);
-      } else {
-        // Ders yoksa seçimi temizle
+      } else if (currentSelectedId) {
+        // Seçili ders listede yoksa seçimi temizle (kullanıcı manuel olarak seçene kadar)
         setSelectedLessonId(null);
       }
+      // Kullanıcı manuel olarak seçene kadar otomatik seçim yapma
     } catch (error) {
       console.error('Dersler yüklenirken hata:', error);
       setLessonsError(error.message || 'Dersler yüklenirken bir hata oluştu');
@@ -819,14 +817,21 @@ export default function DashboardPage() {
   };
   
   // Handle lesson update
-  const handleLessonUpdated = ({ lessonId, groupId }) => {
-    // Ders güncellendiğinde groupId'yi sakla
-    if (lessonId && groupId) {
-      setLessonGroupIds(prev => ({
-        ...prev,
-        [lessonId]: groupId
-      }));
-      console.log('Lesson updated - Saved groupId:', { lessonId, groupId });
+  const handleLessonUpdated = ({ lessonId, groupId, deleted }) => {
+    // Eğer ders silindiyse, seçili dersi temizle
+    if (deleted) {
+      setSelectedLessonId(null);
+      setLessonStudents([]);
+      console.log('Lesson deleted - Selected lesson cleared');
+    } else {
+      // Ders güncellendiğinde groupId'yi sakla
+      if (lessonId && groupId) {
+        setLessonGroupIds(prev => ({
+          ...prev,
+          [lessonId]: groupId
+        }));
+        console.log('Lesson updated - Saved groupId:', { lessonId, groupId });
+      }
     }
     // Ders güncellendikten sonra listeyi yenile
     loadLessons();
@@ -898,7 +903,7 @@ export default function DashboardPage() {
     capacity: backendLessonData?.capacity || (selectedLessonData.capacity ? selectedLessonData.capacity.split('/')[1] : '-'),
     // Backend verilerini de sakla
     _backendData: backendLessonData
-  } : (mockLessonDetails[selectedLessonId] || null);
+  } : null;
   // Ders öğrencileri - state'ten al, yoksa mock data kullan
   const currentLessonStudents = lessonStudents.length > 0 ? lessonStudents : (mockLessonStudents[selectedLessonId] || []);
   
@@ -1018,6 +1023,12 @@ export default function DashboardPage() {
     }
   };
 
+  const handleSelectLesson = (lessonId) => {
+    // Yeni ders seçilmeden önce öğrenci listesini temizle
+    setLessonStudents([]);
+    setSelectedLessonId(lessonId);
+  };
+
   const handleNavigate = (item) => {
     setActiveView(item);
   };
@@ -1062,7 +1073,7 @@ export default function DashboardPage() {
             <LessonListPanel
               lessons={lessonsToDisplay}
               selectedId={selectedLessonId}
-              onSelect={setSelectedLessonId}
+              onSelect={handleSelectLesson}
               onAddClick={() => setIsAddLessonModalOpen(true)}
               groups={groupState.groups}
               lessonGroupIds={lessonGroupIds}

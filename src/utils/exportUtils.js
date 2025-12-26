@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, ImageRun } from 'docx';
 import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
 
 /**
  * Export form as PDF in A4 format - fits on single page
@@ -700,4 +701,87 @@ function createValueCell(text) {
       }),
     ],
   });
+}
+
+/**
+ * Export payment data to Excel
+ * @param {Array} payments - Array of payment objects
+ * @param {Object} student - Student object with name
+ * @param {string} filename - Output filename
+ */
+export function exportPaymentsToExcel(payments = [], student = {}, filename = 'odeme-listesi.xlsx') {
+  try {
+    // Helper function to format date as "MMMM yyyy" (e.g., "Ocak 2024")
+    const formatMonthYear = (date) => {
+      if (!date) return '';
+      const dateObj = date instanceof Date ? date : new Date(date);
+      if (isNaN(dateObj.getTime())) return '';
+      
+      const months = [
+        'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+        'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+      ];
+      return `${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+    };
+
+    // Helper function to format date as "dd.MM.yyyy"
+    const formatDate = (date) => {
+      if (!date) return '';
+      const dateObj = date instanceof Date ? date : new Date(date);
+      if (isNaN(dateObj.getTime())) return '';
+      
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      return `${day}.${month}.${year}`;
+    };
+
+    // Helper function to format currency with Turkish locale
+    const formatCurrency = (value) => {
+      const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+      return numValue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    // Prepare data for Excel
+    const excelData = payments.map((payment) => ({
+      'Ay / Yıl': formatMonthYear(payment.dueDate),
+      'Ödeme Günü': formatDate(payment.dateOfPayment),
+      'Ders Ücreti': formatCurrency(payment.fee || 0),
+      'Malzeme Ücreti': formatCurrency(payment.equipment || 0),
+      'Yapılan Ödeme': formatCurrency(payment.paid || 0),
+      'Borç': formatCurrency(payment.debt !== undefined ? payment.debt : 0),
+      'Durum': payment.debt !== undefined && payment.debt > 0 ? 'Ödenmedi' : 'Ödendi'
+    }));
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths for better readability
+    const columnWidths = [
+      { wch: 15 }, // Ay / Yıl
+      { wch: 15 }, // Ödeme Günü
+      { wch: 15 }, // Ders Ücreti
+      { wch: 15 }, // Malzeme Ücreti
+      { wch: 15 }, // Yapılan Ödeme
+      { wch: 15 }, // Borç
+      { wch: 12 }, // Durum
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Ödemeler');
+
+    // Generate filename with student name if available
+    const studentName = student?.name || '';
+    const finalFilename = studentName 
+      ? `${studentName}_${filename}` 
+      : filename;
+
+    // Write file
+    XLSX.writeFile(workbook, finalFilename);
+    return true;
+  } catch (error) {
+    throw error;
+  }
 }

@@ -41,6 +41,16 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
   const [error, setError] = useState(null);
   const [lessonStudents, setLessonStudents] = useState(students || []);
   
+  // Update lessonStudents when students prop changes (but only if lesson matches)
+  useEffect(() => {
+    if (students && students.length >= 0) {
+      // Sadece lesson seçiliyse students prop'unu kullan
+      if (lesson) {
+        setLessonStudents(students);
+      }
+    }
+  }, [students, lesson]);
+  
   // Grup ID'sini bul - önce lesson'dan, sonra _backendData'dan, sonra lessonGroupIds'den
   const getLessonGroupId = useCallback((lesson) => {
     if (!lesson) return '';
@@ -120,15 +130,36 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
         startingHour: lesson.startingHour || '',
         endingHour: lesson.endingHour || ''
       });
+    } else if (!lesson) {
+      // Lesson null olduğunda lessonData'yı ve editing state'ini temizle
+      setIsEditing(false);
+      setError(null);
+      setLessonData({
+        name: '',
+        groupId: '',
+        capacity: '',
+        selectedDay: '',
+        startingHour: '',
+        endingHour: ''
+      });
     }
-  }, [lesson?.id, lesson?.lessonId, lesson?.name, lesson?.groupId, lesson?.capacity, lesson?.day, lesson?.startingHour, lesson?.endingHour, lesson?._backendData?.groupId, isEditing, lessonGroupIds]);
+  }, [lesson?.id, lesson?.lessonId, lesson?.name, lesson?.groupId, lesson?.capacity, lesson?.day, lesson?.startingHour, lesson?.endingHour, lesson?._backendData?.groupId, isEditing, lessonGroupIds, getLessonGroupId]);
 
   // Load lesson students when lesson changes - ayrı useEffect
   useEffect(() => {
     if (lesson && !isEditing) {
+      // Önce öğrenci listesini temizle, sonra yeni dersin öğrencilerini yükle
+      setLessonStudents([]);
       loadLessonStudents();
+    } else if (!lesson) {
+      // Lesson null olduğunda öğrenci listesini temizle
+      setLessonStudents([]);
+      // Parent component'e de bildir
+      if (onStudentsUpdated) {
+        onStudentsUpdated([]);
+      }
     }
-  }, [lesson?.id, lesson?.lessonId, isEditing, loadLessonStudents]);
+  }, [lesson?.id, lesson?.lessonId, isEditing, loadLessonStudents, onStudentsUpdated]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -397,8 +428,15 @@ export default function LessonDetailsPanel({ lesson, students, onLessonUpdated, 
   if (!lesson) {
     return (
       <section className="dash-right">
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
-          Ders seçiniz
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '3rem 2rem', 
+          color: '#9ca3af',
+          fontSize: '16px',
+          fontFamily: 'Montserrat, sans-serif',
+          fontWeight: '500'
+        }}>
+          Lütfen bir ders seçiniz
         </div>
       </section>
     );

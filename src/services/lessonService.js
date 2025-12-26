@@ -212,56 +212,19 @@ export async function updateLesson(lessonId, lessonData) {
 }
 
 /**
- * Ders sil (isActive: false yaparak soft delete)
+ * Ders sil
  * @param {string|number} lessonId - Ders ID'si
- * @param {string|number|null} [optionalGroupId] - Opsiyonel grup ID'si (lessonGroupIds'den gelebilir)
+ * @param {string|number|null} [optionalGroupId] - Opsiyonel grup ID'si (artık kullanılmıyor, geriye uyumluluk için tutuldu)
  * @returns {Promise<void>}
  */
 export async function deleteLesson(lessonId, optionalGroupId = null) {
   try {
     const lessonIdString = String(lessonId);
     
-    // Önce dersin mevcut bilgilerini al
-    const currentLesson = await getLessonById(lessonIdString);
+    console.log('Delete Lesson - Lesson ID:', lessonIdString);
     
-    // groupId'yi kontrol et - önce optionalGroupId'den, sonra currentLesson'dan
-    const rawGroupId = optionalGroupId || currentLesson.groupId || currentLesson.group?.id;
-    const isValidGroupId = rawGroupId && 
-                          rawGroupId !== '00000000-0000-0000-0000-000000000000' && 
-                          rawGroupId !== null &&
-                          rawGroupId !== undefined &&
-                          String(rawGroupId).trim() !== '';
-    
-    // Tüm ders bilgilerini koruyarak sadece isActive'i false yap
-    const payload = {
-      lessonName: currentLesson.lessonName || currentLesson.name,
-      startingDayOfWeek: currentLesson.startingDayOfWeek,
-      startingHour: currentLesson.startingHour,
-      endingDayOfWeek: currentLesson.endingDayOfWeek || currentLesson.startingDayOfWeek,
-      endingHour: currentLesson.endingHour,
-      capacity: currentLesson.capacity,
-      lessonId: lessonIdString,
-      isActive: false
-    };
-    
-    // Sadece geçerli bir groupId varsa payload'a ekle
-    // Eğer groupId geçersizse, backend muhtemelen null/undefined kabul etmez
-    // Bu durumda mevcut ders bilgilerini kullanıyoruz ama groupId'yi atlıyoruz
-    // Backend groupId'yi zorunlu kılıyorsa hata alacağız, ama denemiş olacağız
-    if (isValidGroupId) {
-      payload.groupId = rawGroupId;
-    } else {
-      // groupId geçersizse payload'a eklemiyoruz
-      console.warn('Delete Lesson - Geçersiz groupId, payload\'a eklenmiyor:', rawGroupId);
-      // Backend groupId'yi zorunlu kılıyorsa, burada hata alacağız
-      // Ama kullanıcının istediği mantık: sadece ders ID'si ile isActive değiştirmek
-      // Bu yüzden groupId olmadan deniyoruz
-    }
-
-    console.log('Delete Lesson - Payload (groupId olmadan):', JSON.stringify(payload, null, 2));
-    
-    // PUT kullanarak isActive: false yap
-    const response = await apiClient.put(`/Lessons`, payload);
+    // DELETE endpoint kullan: DELETE /api/Lessons/{lessonId}
+    const response = await apiClient.delete(`/Lessons/${lessonIdString}`);
     return response.data;
   } catch (error) {
     if (error instanceof ApiError) {
@@ -279,6 +242,12 @@ export async function deleteLesson(lessonId, optionalGroupId = null) {
         errorMessage = backendError.error;
       } else if (typeof backendError === 'string') {
         errorMessage = backendError;
+      } else if (error.response.status === 404) {
+        errorMessage = 'Ders bulunamadı';
+      } else if (error.response.status === 400) {
+        errorMessage = backendError?.title || backendError?.Message || 'Geçersiz istek. Lütfen bilgileri kontrol edin.';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.';
       }
     } else if (error.request) {
       errorMessage = 'Sunucuya bağlanılamadı. Lütfen bağlantınızı kontrol edin.';
