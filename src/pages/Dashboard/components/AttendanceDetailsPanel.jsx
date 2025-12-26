@@ -5,29 +5,208 @@ import { registerLocale } from 'react-datepicker';
 import tr from 'date-fns/locale/tr';
 import 'react-datepicker/dist/react-datepicker.css';
 import AttendanceInfoModal from './AttendanceInfoModal';
-import { getLessonAttendances, bulkCreateAttendances, formatDateForBackend } from '../../../services/attendanceService';
+import { getLessonAttendances, bulkCreateAttendances, formatDateForBackend, getStudentAttendancePercentage } from '../../../services/attendanceService';
+import { getGroupStudents } from '../../../services/groupService';
+import { getLessonStudents } from '../../../services/lessonService';
+import { transformBackendToStudent } from '../../../services/studentService';
 import StudentImage from './StudentImage';
 
 registerLocale('tr', tr);
 
 export default function AttendanceDetailsPanel({ group, lesson, students }) {
+  const [allGroupStudents, setAllGroupStudents] = useState([]);
+  const [lessonStudents, setLessonStudents] = useState([]);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
   const [attendanceData, setAttendanceData] = useState({});
-  const [selectedStudent, setSelectedStudent] = useState(students && students.length > 0 ? students[0] : null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [attendancePercentage, setAttendancePercentage] = useState(0);
+  const [percentageLoading, setPercentageLoading] = useState(false);
 
-  // Update selectedStudent when students change
+  // Load all students from group - use students prop if provided, otherwise fetch from group
   useEffect(() => {
-    if (students && students.length > 0) {
-      // If current selected student is not in the list, select the first one
-      if (!selectedStudent || !students.find(s => s.id === selectedStudent.id)) {
-        setSelectedStudent(students[0]);
+    const loadStudentsForGroup = async () => {
+      // Grup seçilmediyse öğrencileri temizle
+      if (!group) {
+        setAllGroupStudents([]);
+        return;
       }
+
+      // If students prop is provided and it's an array with items, use it
+      if (students && Array.isArray(students) && students.length > 0) {
+        console.log('Using students prop:', students.length, 'students');
+        setAllGroupStudents(students);
+        return;
+      }
+
+      // Otherwise, fetch students from group
+      const groupId = group.id || group._backendData?.id;
+      if (!groupId) {
+        setAllGroupStudents([]);
+        return;
+      }
+
+      setStudentsLoading(true);
+      try {
+        console.log('Loading students for group:', groupId, group);
+        const fetchedStudents = await getGroupStudents(groupId);
+        console.log('Loaded group students:', fetchedStudents);
+        setAllGroupStudents(fetchedStudents || []);
+      } catch (err) {
+        console.error('Grup öğrencileri yüklenirken hata:', err);
+        setAllGroupStudents([]);
+      } finally {
+        setStudentsLoading(false);
+      }
+    };
+
+    loadStudentsForGroup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group?.id, group?._backendData?.id, students?.length]);
+
+  // Load students enrolled in the selected lesson and filter group students
+  useEffect(() => {
+    const loadAndFilterStudents = async () => {
+      if (!lesson || !group) {
+        setFilteredStudents([]);
+        setLessonStudents([]);
+        return;
+      }
+
+      const lessonId = lesson.id || lesson._backendData?.id;
+      if (!lessonId) {
+        setFilteredStudents([]);
+        setLessonStudents([]);
+        return;
+      }
+
+      if (allGroupStudents.length === 0) {
+        setFilteredStudents([]);
+        return;
+      }
+
+      try {
+        console.log('Loading students enrolled in lesson:', lessonId);
+        const enrolledStudentsRaw = await getLessonStudents(lessonId);
+        console.log('Loaded lesson students (raw):', enrolledStudentsRaw);
+        
+        // Transform students if needed (getLessonStudents returns raw backend data)
+        const transformedLessonStudents = enrolledStudentsRaw.map(student => {
+          // If student is already transformed (has name, age, etc.), use it as is
+          if (student.name && student.age !== undefined) {
+            return student;
+          }
+          // Otherwise transform it
+          return transformBackendToStudent(student);
+        });
+        
+        setLessonStudents(transformedLessonStudents || []);
+
+        // Create a set of enrolled student IDs for quick lookup
+        // Check both raw and transformed data
+        const enrolledStudentIds = new Set();
+        enrolledStudentsRaw.forEach(student => {
+          // Extract ID from raw backend data
+          const rawId = student.id || student.studentId || student.student?.id || student.student?.studentId;
+          if (rawId) {
+            enrolledStudentIds.add(String(rawId));
+          }
+          const rawNationalId = student.nationalId || student.student?.nationalId;
+          if (rawNationalId && rawNationalId !== '-' && rawNationalId !== '') {
+            enrolledStudentIds.add(String(rawNationalId));
+          }
+        });
+        transformedLessonStudents.forEach(student => {
+          // Extract ID from transformed data
+          const transformedId = student.id || student._backendData?.id || student._backendData?.studentId;
+          if (transformedId) {
+            enrolledStudentIds.add(String(transformedId));
+          }
+          const transformedNationalId = student.profile?.tc || student._backendData?.nationalId;
+          if (transformedNationalId && transformedNationalId !== '-' && transformedNationalId !== '') {
+            enrolledStudentIds.add(String(transformedNationalId));
+          }
+        });
+
+        console.log('Enrolled student IDs:', Array.from(enrolledStudentIds));
+
+        // Filter group students to only include those enrolled in the lesson
+        const filtered = allGroupStudents.filter(groupStudent => {
+          const groupStudentId = String(groupStudent.id || '');
+          const groupStudentNationalId = String(groupStudent.profile?.tc || groupStudent._backendData?.nationalId || '');
+          
+          // Check if student ID matches
+          if (groupStudentId && enrolledStudentIds.has(groupStudentId)) {
+            return true;
+          }
+          
+          // Check if national ID matches
+          if (groupStudentNationalId && groupStudentNationalId !== '' && groupStudentNationalId !== '-' && enrolledStudentIds.has(groupStudentNationalId)) {
+            return true;
+          }
+          
+          return false;
+        });
+
+        console.log(`Filtered students: ${filtered.length} out of ${allGroupStudents.length} group students are enrolled in lesson`);
+        setFilteredStudents(filtered);
+      } catch (err) {
+        console.error('Ders öğrencileri yüklenirken hata:', err);
+        setLessonStudents([]);
+        setFilteredStudents([]);
+      }
+    };
+
+    loadAndFilterStudents();
+  }, [lesson?.id, lesson?._backendData?.id, allGroupStudents, group]);
+
+  // Update selectedStudent when filteredStudents change
+  useEffect(() => {
+    if (filteredStudents && filteredStudents.length > 0) {
+      // If current selected student is not in the list, select the first one
+      if (!selectedStudent || !filteredStudents.find(s => s.id === selectedStudent.id)) {
+        setSelectedStudent(filteredStudents[0]);
+      }
+    } else {
+      setSelectedStudent(null);
     }
-  }, [students, selectedStudent]);
+  }, [filteredStudents]);
+
+  // Function to load attendance percentage
+  const loadAttendancePercentage = async (studentId) => {
+    if (!studentId || !lesson || !lesson.id) {
+      setAttendancePercentage(0);
+      return;
+    }
+
+    setPercentageLoading(true);
+    try {
+      const lessonId = lesson.id || lesson._backendData?.id;
+      const percentage = await getStudentAttendancePercentage(studentId, lessonId);
+      setAttendancePercentage(Math.round(percentage || 0));
+    } catch (err) {
+      console.error('Katılım yüzdesi yüklenirken hata:', err);
+      // Hata durumunda yüzdeyi 0 olarak göster
+      setAttendancePercentage(0);
+    } finally {
+      setPercentageLoading(false);
+    }
+  };
+
+  // Load attendance percentage when selected student or lesson changes
+  useEffect(() => {
+    if (selectedStudent?.id && lesson?.id) {
+      loadAttendancePercentage(selectedStudent.id);
+    } else {
+      setAttendancePercentage(0);
+    }
+  }, [selectedStudent?.id, lesson?.id]);
   
   // Parse initial date from lesson.date or lesson.day, or use today's date
   const parseAttendanceDate = (lessonData) => {
@@ -46,7 +225,7 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
     return new Date();
   };
   
-  // Use a default lesson if none provided (for mock data compatibility)
+  // Use lesson prop for display
   const displayLesson = lesson || {
     name: 'Ders seçilmedi',
     day: '-',
@@ -58,18 +237,71 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
   
   // Update attendance date when lesson changes
   useEffect(() => {
-    const currentLesson = lesson || displayLesson;
-    if (currentLesson) {
-      const newDate = parseAttendanceDate(currentLesson);
+    if (lesson) {
+      const newDate = parseAttendanceDate(lesson);
       setAttendanceDate(newDate);
     }
-  }, [lesson?.id, lesson?.date, lesson?.day, displayLesson?.date]);
+  }, [lesson?.id]);
   
-  const handleAttendanceDateChange = (date) => {
+  const handleAttendanceDateChange = async (date) => {
     setAttendanceDate(date);
-    // Here you can save the date to backend or update the lesson
-    console.log('Attendance date changed:', date);
-    // You might want to call an API here to update the lesson date
+    // Tarih değiştiğinde önceki attendance verilerini temizle
+    setAttendanceData({});
+    setError(null);
+    setSuccessMessage(null);
+    
+    // Yeni tarih için backend'den attendance verilerini getir
+    if (!lesson || !lesson.id || !filteredStudents || filteredStudents.length === 0) {
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const formattedDate = formatDateForBackend(date);
+      if (!formattedDate) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await getLessonAttendances(lesson.id, formattedDate);
+      
+      // Backend response yapısı: { lessonId, students: [{ id, isPresent, ... }] }
+      const students = response?.students || response?.Students || [];
+      
+      // Transform backend data to frontend format
+      const attendanceMap = {};
+      students.forEach(student => {
+        const studentId = student.id || student.Id;
+        // Backend'den IsPresent null gelebilir, null olarak tut (gri göstermek için)
+        if (studentId) {
+          const isPresent = student.isPresent !== undefined 
+            ? student.isPresent 
+            : (student.IsPresent !== undefined ? student.IsPresent : null);
+          attendanceMap[studentId] = isPresent;
+        }
+      });
+      
+      // Merge with filtered students - null değerleri koru (gri göstermek için)
+      const mergedData = {};
+      filteredStudents.forEach(student => {
+        mergedData[student.id] = attendanceMap[student.id] !== undefined 
+          ? attendanceMap[student.id] 
+          : null; // Null olarak tut (henüz kaydedilmemiş)
+      });
+      
+      setAttendanceData(mergedData);
+    } catch (err) {
+        console.error('Yoklama verileri yüklenirken hata:', err);
+        // On error, initialize with null values (gri göstermek için)
+        const defaultData = {};
+        filteredStudents.forEach(student => {
+          defaultData[student.id] = null;
+        });
+        setAttendanceData(defaultData);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleToggleAttendance = (studentId) => {
@@ -79,7 +311,16 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
     }));
   };
 
-  // Load attendance data when lesson changes
+  const handleSetAttendance = (studentId, isPresent) => {
+    // Sadece state'i güncelle, API çağrısı yapma
+    // API çağrısı sadece "Kaydet" butonunda yapılacak
+    setAttendanceData(prev => ({
+      ...prev,
+      [studentId]: isPresent
+    }));
+  };
+
+  // Load attendance data when lesson or attendanceDate changes
   useEffect(() => {
     const loadAttendanceData = async () => {
       if (!lesson || !lesson.id) {
@@ -88,44 +329,54 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
         return;
       }
 
+      if (!filteredStudents || filteredStudents.length === 0) {
+        setAttendanceData({});
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
       
       try {
-        const attendances = await getLessonAttendances(lesson.id);
+        // Format attendance date for backend
+        const formattedDate = formatDateForBackend(attendanceDate);
+        
+        // Backend'den attendance verilerini getir (tarih parametresi ile)
+        const response = await getLessonAttendances(lesson.id, formattedDate);
+        
+        // Backend response yapısı: { lessonId, students: [{ id, isPresent, ... }] }
+        const students = response?.students || response?.Students || [];
         
         // Transform backend data to frontend format
         const attendanceMap = {};
-        if (Array.isArray(attendances)) {
-          attendances.forEach(attendance => {
-            const studentId = attendance.studentId || attendance.student?.id;
-            if (studentId) {
-              attendanceMap[studentId] = attendance.isPresent !== undefined ? attendance.isPresent : true;
-            }
-          });
-        }
+        students.forEach(student => {
+          const studentId = student.id || student.Id;
+          // Backend'den IsPresent null gelebilir, null olarak tut (gri göstermek için)
+          if (studentId) {
+            const isPresent = student.isPresent !== undefined 
+              ? student.isPresent 
+              : (student.IsPresent !== undefined ? student.IsPresent : null);
+            attendanceMap[studentId] = isPresent;
+          }
+        });
         
-        // Merge with existing data, defaulting to true if not in backend data
+        // Merge with filtered students - null değerleri koru (gri göstermek için)
         const mergedData = {};
-        if (students && students.length > 0) {
-          students.forEach(student => {
-            mergedData[student.id] = attendanceMap[student.id] !== undefined 
-              ? attendanceMap[student.id] 
-              : true; // Default to present if no data
-          });
-        }
+        filteredStudents.forEach(student => {
+          mergedData[student.id] = attendanceMap[student.id] !== undefined 
+            ? attendanceMap[student.id] 
+            : null; // Null olarak tut (henüz kaydedilmemiş)
+        });
         
         setAttendanceData(mergedData);
       } catch (err) {
         console.error('Yoklama verileri yüklenirken hata:', err);
         setError(err.message || 'Yoklama verileri yüklenirken bir hata oluştu');
-        // On error, initialize with default values
+        // On error, initialize with null values (gri göstermek için)
         const defaultData = {};
-        if (students && students.length > 0) {
-          students.forEach(student => {
-            defaultData[student.id] = true;
-          });
-        }
+        filteredStudents.forEach(student => {
+          defaultData[student.id] = null;
+        });
         setAttendanceData(defaultData);
       } finally {
         setIsLoading(false);
@@ -133,7 +384,7 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
     };
 
     loadAttendanceData();
-  }, [lesson?.id, students]);
+  }, [lesson?.id, filteredStudents, attendanceDate]);
 
   const handleSaveAttendance = async () => {
     if (!lesson || !lesson.id) {
@@ -141,13 +392,14 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
       return;
     }
 
-    if (!students || students.length === 0) {
+    if (!filteredStudents || filteredStudents.length === 0) {
       setError('Öğrenci listesi boş');
       return;
     }
 
     setIsSaving(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       // Format attendance date for backend
@@ -158,22 +410,41 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
         return;
       }
 
-      // Prepare attendance data
-      const attendances = students.map(student => ({
-        studentId: student.id,
-        isPresent: attendanceData[student.id] !== undefined ? attendanceData[student.id] : true
-      }));
+      // Prepare attendance data - Backend StudentAttendances bekliyor (camelCase: studentAttendances)
+      // Null değerler için default olarak true gönder
+      const studentAttendances = filteredStudents.map(student => {
+        const isPresent = attendanceData[student.id];
+        return {
+          studentId: student.id,
+          isPresent: isPresent !== null && isPresent !== undefined ? isPresent : true
+        };
+      });
 
       const attendancePayload = {
         lessonId: lesson.id,
         attendanceDate: formattedDate,
-        attendances: attendances
+        studentAttendances: studentAttendances
       };
 
-      await bulkCreateAttendances(attendancePayload);
+      const response = await bulkCreateAttendances(attendancePayload);
       
-      // Success - could show a success message here
-      console.log('Yoklama başarıyla kaydedildi');
+      // Backend'den gelen success mesajını göster
+      if (response?.message) {
+        setSuccessMessage(response.message);
+        // 3 saniye sonra mesajı temizle
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+      }
+      
+      // Success - refresh attendance percentage for the selected student from backend
+      if (selectedStudent?.id && lesson?.id) {
+        try {
+          await loadAttendancePercentage(selectedStudent.id);
+        } catch (percentageError) {
+          console.error('Katılım yüzdesi güncellenirken hata:', percentageError);
+        }
+      }
       
     } catch (err) {
       console.error('Yoklama kaydedilirken hata:', err);
@@ -229,11 +500,11 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
   };
 
   const presentCount = Object.values(attendanceData).filter(isPresent => isPresent).length;
-  const totalCount = (students && students.length > 0) ? students.length : 0;
+  const totalCount = (filteredStudents && filteredStudents.length > 0) ? filteredStudents.length : 0;
 
   return (
     <section className="dash-right dash-right--attendance">
-      <div className="group-header">Grup Bilgisi</div>
+      <div className="group-header">Grup ve Ders Bilgisi</div>
       
       <div style={{ 
         display: 'flex', 
@@ -244,43 +515,42 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
         justifyContent: 'space-between'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ color: '#5b7ce6', fontWeight: '500', whiteSpace: 'nowrap' }}>Grup Adı:</span>
+          <span style={{ color: '#ff7b00', fontWeight: '500', whiteSpace: 'nowrap' }}>Grup Adı:</span>
           <span style={{ color: '#1f2937' }}>{group.name}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ color: '#5b7ce6', fontWeight: '500', whiteSpace: 'nowrap' }}>Yaş Aralığı:</span>
+          <span style={{ color: '#ff7b00', fontWeight: '500', whiteSpace: 'nowrap' }}>Yaş Aralığı:</span>
           <span style={{ color: '#1f2937' }}>{formatAgeRange(group)} Yaş</span>
         </div>
       </div>
 
-      <div className="lesson-header">Ders Bilgisi</div>
-      
+      {/* Ders Bilgileri */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        padding: '1rem 0rem',
+        padding: '0.5rem 0rem',
         gap: '0rem',
         marginBottom: '1.5rem',
         justifyContent: 'space-between'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '0 0 auto' }}>
-          <span style={{ color: '#5b7ce6', fontWeight: '500', whiteSpace: 'nowrap' }}>Ders Adı:</span>
-          <span style={{ color: '#1f2937' }}>{displayLesson.name}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#ff7b00', fontWeight: '500', whiteSpace: 'nowrap' }}>Ders Adı:</span>
+          <span style={{ color: '#1f2937' }}>{lesson?.name || 'Ders seçilmedi'}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '0 0 auto', justifyContent: 'center' }}>
-          <span style={{ color: '#5b7ce6', fontWeight: '500', whiteSpace: 'nowrap' }}>Ders Günü:</span>
-          <span style={{ color: '#1f2937' }}>{displayLesson.day}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#ff7b00', fontWeight: '500', whiteSpace: 'nowrap' }}>Ders Günü:</span>
+          <span style={{ color: '#1f2937' }}>{lesson?.day || '-'}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '0 0 auto', justifyContent: 'flex-end' }}>
-          <span style={{ color: '#5b7ce6', fontWeight: '500', whiteSpace: 'nowrap' }}>Kapasite:</span>
-          <span style={{ color: '#1f2937' }}>{displayLesson.capacity}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#ff7b00', fontWeight: '500', whiteSpace: 'nowrap' }}>Kapasite:</span>
+          <span style={{ color: '#1f2937' }}>{lesson?.capacity || '-'}</span>
         </div>
       </div>
 
-      <div className="lesson-content-wrapper" style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
+      <div className="lesson-content-wrapper" style={{ display: 'flex', gap: '2rem', marginTop: '2rem', justifyContent: 'space-between' }}>
         {/* Left Side - Student List */}
-        <div style={{ flex: '0 0 480px', display: 'flex', flexDirection: 'column', maxHeight: '301px', minHeight: 0 }}>
-          <h3 style={{ color: '#5b7ce6', fontSize: '1.25rem', marginBottom: '1rem', fontWeight: '700' }}>
+        <div style={{ flex: '0 0 350px', display: 'flex', flexDirection: 'column', maxHeight: '450px', minHeight: 0, marginRight: '1rem' }}>
+          <h3 style={{ color: '#ff7b00', fontSize: '1.25rem', marginBottom: '1rem', fontWeight: '700' }}>
             Öğrenci Listesi
           </h3>
           
@@ -303,13 +573,39 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
             overflowX: 'hidden',
             backgroundColor: 'transparent',
             flex: '1',
-            minHeight: 0,
-            marginTop: '0.5rem'
+            minHeight: '276px',
+            marginTop: '0.5rem',
+            paddingRight: '1rem'
           }}>
-            {(students || [])
+            {!lesson ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                Lütfen bir ders seçiniz
+              </div>
+            ) : studentsLoading ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                Öğrenciler yükleniyor...
+              </div>
+            ) : (filteredStudents || []).length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                Bu derse kayıtlı öğrenci bulunamadı
+              </div>
+            ) : (filteredStudents || [])
+              .filter(student => student.name && student.name.toLowerCase().includes(searchQuery.toLowerCase()))
+              .length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                Arama kriterinize uygun öğrenci bulunamadı
+              </div>
+            ) : (filteredStudents || [])
               .filter(student => student.name && student.name.toLowerCase().includes(searchQuery.toLowerCase()))
               .map((student) => {
               const isPresent = attendanceData[student.id];
+              // Renk belirleme: true -> yeşil, false -> kırmızı, null/undefined -> gri
+              const getIndicatorColor = () => {
+                if (isPresent === true) return '#22c55e'; // Yeşil
+                if (isPresent === false) return '#ef4444'; // Kırmızı
+                return '#9ca3af'; // Gri (null veya undefined)
+              };
+              
               return (
                 <div
                   key={student.id}
@@ -321,43 +617,35 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
                     gap: '8px',
                     cursor: 'pointer',
                     backgroundColor: 'transparent',
-                    transition: 'opacity 0.2s'
+                    transition: 'opacity 0.2s',
+                    justifyContent: 'space-between'
                   }}
                   onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
                   onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
                 >
-                  <StudentImage
-                    student={student}
-                    alt={student.name}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '2px solid #5b7ce6'
-                    }}
-                  />
-                  <span style={{ flex: '1', fontSize: '0.9rem', color: '#6b7280', fontWeight: '400' }}>
-                    {student.name}
-                  </span>
-                  <span style={{ fontSize: '0.85rem', color: '#6b7280', minWidth: '25px' }}>
-                    {student.age}
-                  </span>
-                  <span style={{ fontSize: '0.85rem', color: '#6b7280', minWidth: '85px' }}>
-                    {student.team}
-                  </span>
-                  <span style={{ fontSize: '0.85rem', color: '#6b7280', minWidth: '70px' }}>
-                    {student.birthDate}
-                  </span>
-                  <span style={{ fontSize: '0.85rem', color: '#6b7280', minWidth: '20px', textAlign: 'center' }}>
-                    {student.jerseyNumber || '9'}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: 0 }}>
+                    <StudentImage
+                      student={student}
+                      alt={student.name}
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid #ff7b00',
+                        flexShrink: 0
+                      }}
+                    />
+                    <span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: '400' }}>
+                      {student.name}
+                    </span>
+                  </div>
                   <div
                     style={{
                       width: '16px',
                       height: '16px',
                       borderRadius: '3px',
-                      backgroundColor: isPresent ? '#22c55e' : '#ef4444',
+                      backgroundColor: getIndicatorColor(),
                       flexShrink: 0
                     }}
                   />
@@ -366,7 +654,7 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
             })}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '2rem', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: '2rem', gap: '0.5rem' }}>
             {error && (
               <div style={{
                 padding: '0.75rem 1rem',
@@ -380,6 +668,21 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
                 maxWidth: '206px'
               }}>
                 {error}
+              </div>
+            )}
+            {successMessage && (
+              <div style={{
+                padding: '0.75rem 1rem',
+                backgroundColor: '#d1fae5',
+                color: '#065f46',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                textAlign: 'center',
+                width: '100%',
+                maxWidth: '206px'
+              }}>
+                {successMessage}
               </div>
             )}
             <button
@@ -419,25 +722,23 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
         </div>
 
         {/* Right Side - Attendance Tracking */}
-        <div style={{ width: '419px', height: '331px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'nowrap' }}>
-            <h3 style={{ color: '#5b7ce6', fontSize: '1.25rem', margin: 0, fontWeight: '700', whiteSpace: 'nowrap' }}>
-              Yoklama Bilgisi
-            </h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}>
-              <span style={{ color: '#5b7ce6', fontWeight: '500', whiteSpace: 'nowrap' }}>
-                Yoklama Tarihi:
-              </span>
-              <DatePicker
-                selected={attendanceDate}
-                onChange={handleAttendanceDateChange}
-                locale="tr"
-                dateFormat="dd.MM.yyyy"
-                className="attendance-date-picker"
-                placeholderText="Tarih seçin"
-                showPopperArrow={false}
-              />
-            </div>
+        <div style={{ width: '419px', height: '331px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: 'auto' }}>
+          <h3 style={{ color: '#ff7b00', fontSize: '1.25rem', margin: 0, marginBottom: '1rem', fontWeight: '700', whiteSpace: 'nowrap' }}>
+            Yoklama Bilgisi
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap', marginBottom: '1rem' }}>
+            <span style={{ color: '#ff7b00', fontWeight: '500', whiteSpace: 'nowrap' }}>
+              Yoklama Tarihi:
+            </span>
+            <DatePicker
+              selected={attendanceDate}
+              onChange={handleAttendanceDateChange}
+              locale="tr"
+              dateFormat="dd.MM.yyyy"
+              className="attendance-date-picker"
+              placeholderText="Tarih seçin"
+              showPopperArrow={false}
+            />
           </div>
 
           {selectedStudent && (
@@ -446,7 +747,10 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
               flexDirection: 'column',
               gap: '2rem',
               backgroundColor: 'transparent',
-              height: '100%'
+              height: '100%',
+              width: '100%',
+              alignItems: 'flex-start',
+              marginTop: '5rem'
             }}>
               {/* Student Profile - Horizontal Layout */}
               <div style={{ 
@@ -454,7 +758,7 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
                 alignItems: 'center',
                 gap: '1.5rem'
               }}>
-                <img 
+                <StudentImage
                   student={selectedStudent}
                   alt={selectedStudent.name}
                   style={{
@@ -462,14 +766,14 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
                     height: '100px',
                     borderRadius: '50%',
                     objectFit: 'cover',
-                    border: '3px solid #5b7ce6',
+                    border: '3px solid #ff7b00',
                     flexShrink: 0
                   }}
                 />
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <h4 style={{ 
-                    color: '#5b7ce6', 
+                    color: '#ff7b00', 
                     fontSize: '1.5rem', 
                     fontWeight: '700',
                     margin: 0
@@ -482,44 +786,48 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                       <button
                         type="button"
-                        onClick={() => handleToggleAttendance(selectedStudent.id)}
+                        onClick={() => handleSetAttendance(selectedStudent.id, true)}
+                        disabled={isSaving || isLoading || !lesson || !lesson.id}
                         style={{
                           padding: '0 24px',
-                          backgroundColor: attendanceData[selectedStudent.id] ? '#22c55e' : '#f3f4f6',
-                          color: attendanceData[selectedStudent.id] ? '#fff' : '#6b7280',
+                          backgroundColor: attendanceData[selectedStudent.id] === true ? '#22c55e' : '#f3f4f6',
+                          color: attendanceData[selectedStudent.id] === true ? '#fff' : '#6b7280',
                           border: 'none',
                           borderRadius: '6px',
                           fontSize: '0.95rem',
                           fontWeight: '600',
-                          cursor: 'pointer',
+                          cursor: (isSaving || isLoading || !lesson || !lesson.id) ? 'not-allowed' : 'pointer',
                           transition: 'all 0.2s',
                           width: '121px',
                           height: '28px',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          opacity: (isSaving || isLoading || !lesson || !lesson.id) ? 0.6 : 1
                         }}
                       >
                         Katıldı
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleToggleAttendance(selectedStudent.id)}
+                        onClick={() => handleSetAttendance(selectedStudent.id, false)}
+                        disabled={isSaving || isLoading || !lesson || !lesson.id}
                         style={{
                           padding: '0 24px',
-                          backgroundColor: !attendanceData[selectedStudent.id] ? '#ef4444' : '#f3f4f6',
-                          color: !attendanceData[selectedStudent.id] ? '#fff' : '#6b7280',
+                          backgroundColor: attendanceData[selectedStudent.id] === false ? '#ef4444' : '#f3f4f6',
+                          color: attendanceData[selectedStudent.id] === false ? '#fff' : '#6b7280',
                           border: 'none',
                           borderRadius: '6px',
                           fontSize: '0.95rem',
                           fontWeight: '600',
-                          cursor: 'pointer',
+                          cursor: (isSaving || isLoading || !lesson || !lesson.id) ? 'not-allowed' : 'pointer',
                           transition: 'all 0.2s',
                           width: '121px',
                           height: '28px',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          opacity: (isSaving || isLoading || !lesson || !lesson.id) ? 0.6 : 1
                         }}
                       >
                         Katılmadı
@@ -532,7 +840,7 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
                       onClick={() => setIsAttendanceModalOpen(true)}
                       style={{
                         padding: '8px 16px',
-                        backgroundColor: '#5677FB',
+                        backgroundColor: '#ff7b00',
                         color: '#fff',
                         border: 'none',
                         borderRadius: '6px',
@@ -556,16 +864,16 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
               </div>
 
               {/* Progress Bar Section - Extended Horizontal */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignSelf: 'flex-start', width: '100%', marginTop: '2.5rem' }}>
                 <div>
                   <div style={{ 
                     display: 'flex', 
-                    justifyContent: 'space-between', 
+                    justifyContent: 'flex-start', 
                     alignItems: 'center',
                     marginBottom: '0.75rem'
                   }}>
-                    <span style={{ color: '#5b7ce6', fontSize: '1rem', fontWeight: '500' }}>
-                      Antrenman Katılımı %{totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0}
+                    <span style={{ color: '#ff7b00', fontSize: '1rem', fontWeight: '500' }}>
+                      Antrenman Katılımı %{percentageLoading ? '...' : attendancePercentage}
                     </span>
                   </div>
                   <div style={{ 
@@ -576,9 +884,9 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
                     overflow: 'hidden'
                   }}>
                     <div style={{
-                      width: `${totalCount > 0 ? (presentCount / totalCount) * 100 : 0}%`,
+                      width: `${attendancePercentage}%`,
                       height: '100%',
-                      backgroundColor: '#5b7ce6',
+                      backgroundColor: '#ff7b00',
                       transition: 'width 0.3s ease'
                     }} />
                   </div>
@@ -595,6 +903,7 @@ export default function AttendanceDetailsPanel({ group, lesson, students }) {
         student={selectedStudent}
         group={group}
         lesson={lesson}
+        attendancePercentage={attendancePercentage}
       />
     </section>
   );

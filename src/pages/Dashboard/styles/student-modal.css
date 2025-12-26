@@ -35,7 +35,7 @@
   max-height: 900px;
   min-height: 600px;
   background: #ffffff;
-  border: 3px solid #5677fb;
+  border: 3px solid #ff7b00;
   border-radius: 24px;
   padding: 40px;
   display: flex;
@@ -76,7 +76,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 32px;
   font-weight: 800;
-  color: #5677fb;
+  color: #ff7b00;
   margin: 0 0 32px 0;
   text-align: left;
 }
@@ -116,7 +116,7 @@
   font-weight: 500;
   color: rgba(0, 0, 0, 0.62);
   border: none;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.3);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.3);
   border-radius: 0;
   outline: none;
   background: transparent;
@@ -124,7 +124,7 @@
 }
 
 .student-modal__search-input:focus {
-  border-bottom-color: #5677FB;
+  border-bottom-color: #ff7b00;
   border-bottom-width: 2px;
 }
 
@@ -158,11 +158,11 @@
 }
 
 .student-modal__tab:hover {
-  color: #5677fb;
+  color: #ff7b00;
 }
 
 .student-modal__tab--active {
-  color: #5677fb;
+  color: #ff7b00;
 }
 
 .student-modal__tab--active::after {
@@ -172,7 +172,7 @@
   right: 0;
   bottom: -1px;
   height: 2px;
-  background: #5677fb;
+  background: #ff7b00;
 }
 
 /* Student List */
@@ -190,17 +190,17 @@
 }
 
 .student-modal__list::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
   border-radius: 3px;
 }
 
 .student-modal__list::-webkit-scrollbar-thumb {
-  background: #5677fb;
+  background: #ff7b00;
   border-radius: 3px;
 }
 
 .student-modal__list::-webkit-scrollbar-thumb:hover {
-  background: #4566e8;
+  background: #ff7b00;
 }
 
 /* Student Row - Öğrenciler sayfasındaki yapıya benzer */
@@ -229,7 +229,7 @@
 }
 
 .student-modal__row--active .student-modal__row-indicator {
-  background: #5677FB;
+  background: #ff7b00;
 }
 
 .student-modal__row-avatar {
@@ -237,7 +237,7 @@
   height: 36px;
   border-radius: 999px;
   overflow: hidden;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
   flex-shrink: 0;
 }
 
@@ -283,13 +283,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 /* Vertical Divider */
 .student-modal__divider {
   width: 5px;
-  background: #5677fb;
+  background: #ff7b00;
   border-radius: 999px;
 }
 
@@ -307,17 +307,17 @@
 }
 
 .student-modal__right::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
   border-radius: 3px;
 }
 
 .student-modal__right::-webkit-scrollbar-thumb {
-  background: #5677fb;
+  background: #ff7b00;
   border-radius: 3px;
 }
 
 .student-modal__right::-webkit-scrollbar-thumb:hover {
-  background: #4566e8;
+  background: #ff7b00;
 }
 
 /* Student Profile */
@@ -337,7 +337,7 @@
   height: 166px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #5677fb;
+  border: 3px solid #ff7b00;
   background: #ffffff;
   display: flex;
   align-items: center;
@@ -358,7 +358,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 20px;
   font-weight: 900;
-  color: #5677fb;
+  color: #ff7b00;
   text-align: center;
   white-space: nowrap;
   word-break: keep-all;
@@ -388,11 +388,11 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.2);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.2);
 }
 
 .student-modal__detail-row--last {
-  border-bottom: 2px solid #5677fb;
+  border-bottom: 2px solid #ff7b00;
   padding-bottom: 16px;
 }
 
@@ -411,7 +411,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 24px;
   font-weight: 800;
-  color: rgba(86, 119, 251, 0.37);
+  color: rgba(255, 123, 0, 0.37);
   text-align: center;
   margin: 40px 0;
   line-height: 1.4;
@@ -421,7 +421,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  color: #5677fb;
+  color: #ff7b00;
 }
 
 .student-modal__detail-value {
@@ -436,7 +436,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 24px;
   font-weight: 800;
-  color: rgba(86, 119, 251, 0.37);
+  color: rgba(255, 123, 0, 0.37);
   text-align: center;
   margin: 40px 0;
   line-height: 1.4;
@@ -444,7 +444,7 @@
 
 /* Assign Button */
 .student-modal__assign-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -458,7 +458,7 @@
 }
 
 .student-modal__assign-btn:hover:not(:disabled) {
-  background: #4566e8;
+  background: #ff7b00;
 }
 
 .student-modal__assign-btn:disabled {

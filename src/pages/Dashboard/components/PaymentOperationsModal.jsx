@@ -245,7 +245,7 @@ export default function PaymentOperationsModal({ isOpen, onClose, student }) {
     <div className="payment-modal-overlay" onClick={onClose}>
       <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
         <button className="payment-modal__close" onClick={onClose}>
-          <X size={24} color="#5677FB" />
+          <X size={24} color="#ff7b00" />
         </button>
 
         <h2 className="payment-modal__title">Ödeme İşlemleri</h2>

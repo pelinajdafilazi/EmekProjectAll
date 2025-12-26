@@ -123,7 +123,7 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
     <div className="student-modal-overlay" onClick={handleBackdropClick}>
       <div className="student-modal">
         <button className="student-modal__close" onClick={onClose} aria-label="Close modal">
-          <X style={{ width: '24px', height: '24px', color: '#5677fb' }} />
+          <X style={{ width: '24px', height: '24px', color: '#ff7b00' }} />
         </button>
 
         <h1 className="student-modal__title">Öğrenci Listesi</h1>
@@ -140,7 +140,7 @@ export default function StudentListModal({ isOpen, onClose, onAssign, lessonId =
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Search style={{ width: '20px', height: '20px', color: '#5677fb' }} className="student-modal__search-icon" />
+              <Search style={{ width: '20px', height: '20px', color: '#ff7b00' }} className="student-modal__search-icon" />
             </div>
 
             {/* Tabs */}

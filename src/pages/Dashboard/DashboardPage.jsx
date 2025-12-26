@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [selectedPaymentStudentId, setSelectedPaymentStudentId] = useState('1');
   const [selectedAttendanceGroupId, setSelectedAttendanceGroupId] = useState('1');
+  const [selectedAttendanceLessonId, setSelectedAttendanceLessonId] = useState(null);
   const [attendanceStudents, setAttendanceStudents] = useState([]);
   const [attendanceStudentsLoading, setAttendanceStudentsLoading] = useState(false);
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
@@ -837,7 +838,25 @@ export default function DashboardPage() {
     loadLessons();
   };
 
-  const selectedStudent = selectedStudentDetails || students.find(s => s.id === selectedStudentId) || null;
+  // Find student from details or list
+  const baseSelectedStudent = selectedStudentDetails || students.find(s => s.id === selectedStudentId) || null;
+  
+  // Merge payment information from paymentStudents if available (to match PaymentListPanel)
+  // This includes data from "toplam borca göre" (general view) or date-filtered view
+  const selectedStudent = baseSelectedStudent ? (() => {
+    const paymentStudent = paymentStudents.find(ps => String(ps.id) === String(baseSelectedStudent.id));
+    if (paymentStudent) {
+      // Merge all payment-related data from paymentStudents (includes totalDebt, paymentStatus, etc.)
+      return {
+        ...baseSelectedStudent,
+        paymentStatus: paymentStudent.paymentStatus || baseSelectedStudent.paymentStatus,
+        totalDebt: paymentStudent.totalDebt !== undefined ? paymentStudent.totalDebt : baseSelectedStudent.totalDebt,
+        debtInfo: paymentStudent.debtInfo || baseSelectedStudent.debtInfo,
+        payments: paymentStudent.payments || baseSelectedStudent.payments
+      };
+    }
+    return baseSelectedStudent;
+  })() : null;
   const selectedGroup = groupState.groups.find(g => g.id === selectedGroupId);
   const groupStudents = selectedGroupId ? (groupState.students[selectedGroupId] || []) : [];
   // Use loaded lessons or fallback to mock
@@ -913,18 +932,15 @@ export default function DashboardPage() {
   // Attendance data based on selected group
   const selectedAttendanceGroup = groupState.groups.find(g => g.id === selectedAttendanceGroupId);
   
-  // Find lesson for selected group - use real lesson data from backend
-  const selectedAttendanceLessonData = selectedAttendanceGroupId && lessonsToDisplay.length > 0
-    ? lessonsToDisplay.find(l => {
-        const lessonGroupId = l.groupId || l._backendData?.groupId || (l.id && lessonGroupIds[l.id]);
-        return lessonGroupId && String(lessonGroupId) === String(selectedAttendanceGroupId);
-      })
+  // Find selected lesson by ID
+  const selectedAttendanceLessonData = selectedAttendanceLessonId 
+    ? lessonsToDisplay.find(l => String(l.id) === String(selectedAttendanceLessonId))
     : null;
 
   // Format lesson for attendance display (only name, day, capacity)
   const selectedAttendanceLesson = selectedAttendanceLessonData ? {
     id: selectedAttendanceLessonData.id,
-    name: selectedAttendanceLessonData.name || '-',
+    name: selectedAttendanceLessonData.name || selectedAttendanceLessonData.lessonName || '-',
     day: selectedAttendanceLessonData.day || '-',
     capacity: selectedAttendanceLessonData.capacity 
       ? (typeof selectedAttendanceLessonData.capacity === 'string' 
@@ -933,8 +949,16 @@ export default function DashboardPage() {
       : (selectedAttendanceLessonData._backendData?.capacity 
           ? String(selectedAttendanceLessonData._backendData.capacity)
           : '-'),
-    date: selectedAttendanceLessonData._backendData?.date || new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')
+    date: selectedAttendanceLessonData._backendData?.date || new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
+    _backendData: selectedAttendanceLessonData._backendData || selectedAttendanceLessonData
   } : null;
+
+  // Reset lesson selection when group changes
+  useEffect(() => {
+    if (selectedAttendanceGroupId) {
+      setSelectedAttendanceLessonId(null);
+    }
+  }, [selectedAttendanceGroupId]);
 
   // Load students for selected attendance group
   useEffect(() => {
@@ -1112,6 +1136,8 @@ export default function DashboardPage() {
               groups={groupState.groups}
               selectedId={selectedAttendanceGroupId}
               onSelect={setSelectedAttendanceGroupId}
+              selectedLessonId={selectedAttendanceLessonId}
+              onLessonSelect={setSelectedAttendanceLessonId}
             />
             <AttendanceDetailsPanel
               group={selectedAttendanceGroup}

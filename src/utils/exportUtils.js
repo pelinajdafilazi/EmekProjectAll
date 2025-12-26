@@ -772,11 +772,130 @@ export function exportPaymentsToExcel(payments = [], student = {}, filename = 'o
     // Add worksheet to workbook
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Ödemeler');
 
-    // Generate filename with student name if available
+    // Generate filename: tarih_yapılan işlem_öğrenci adı soyadı.xlsx
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const studentName = student?.name || '';
-    const finalFilename = studentName 
-      ? `${studentName}_${filename}` 
-      : filename;
+    const operationType = filename.replace('.xlsx', ''); // 'odeme-listesi' veya 'yoklama-listesi'
+    
+    let finalFilename;
+    if (studentName) {
+      // Öğrenci adındaki boşlukları alt çizgi ile değiştir
+      const sanitizedName = studentName.replace(/\s+/g, '_');
+      finalFilename = `${dateStr}_${operationType}_${sanitizedName}.xlsx`;
+    } else {
+      finalFilename = `${dateStr}_${operationType}.xlsx`;
+    }
+
+    // Write file
+    XLSX.writeFile(workbook, finalFilename);
+    return true;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Export attendance data to Excel
+ * @param {Array} attendances - Array of attendance objects
+ * @param {Object} student - Student object with name
+ * @param {Object} group - Group object with name
+ * @param {Object} lesson - Lesson object with name
+ * @param {string} filename - Output filename
+ */
+export function exportAttendancesToExcel(attendances = [], student = {}, group = {}, lesson = {}, filename = 'yoklama-listesi.xlsx') {
+  try {
+    // Helper function to format date as "dd.MM.yyyy"
+    const formatDate = (date) => {
+      if (!date) return '';
+      let dateObj;
+      
+      if (date instanceof Date) {
+        dateObj = date;
+      } else if (typeof date === 'string') {
+        // Try ISO format first (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ssZ)
+        if (date.includes('T')) {
+          dateObj = new Date(date);
+        } else if (date.includes('-')) {
+          // YYYY-MM-DD format
+          const parts = date.split('-');
+          dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        } else if (date.includes('.')) {
+          // DD.MM.YYYY format
+          const parts = date.split('.');
+          dateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        } else {
+          dateObj = new Date(date);
+        }
+      } else {
+        return '';
+      }
+      
+      if (isNaN(dateObj.getTime())) return '';
+      
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      return `${day}.${month}.${year}`;
+    };
+
+    // Helper function to get attendance status text
+    const getAttendanceStatus = (isPresent) => {
+      if (isPresent === true) return 'Katıldı';
+      if (isPresent === false) return 'Katılmadı';
+      return 'Belirtilmemiş';
+    };
+
+    // Get names
+    let studentName = student?.name || '';
+    if (!studentName && student?.firstName && student?.lastName) {
+      studentName = `${student.firstName} ${student.lastName}`;
+    }
+    if (!studentName) {
+      studentName = '-';
+    }
+    const groupName = group?.name || '-';
+    const lessonName = lesson?.name || lesson?.lessonName || '-';
+
+    // Prepare data for Excel
+    const excelData = attendances.map((attendance) => ({
+      'Ad Soyad': studentName,
+      'Grup Adı': groupName,
+      'Ders Adı': lessonName,
+      'Yoklama Tarihi': formatDate(attendance.attendanceDate || attendance.date),
+      'Katılım': getAttendanceStatus(attendance.isPresent !== undefined ? attendance.isPresent : attendance.attending)
+    }));
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths for better readability
+    const columnWidths = [
+      { wch: 20 }, // Ad Soyad
+      { wch: 15 }, // Grup Adı
+      { wch: 15 }, // Ders Adı
+      { wch: 15 }, // Yoklama Tarihi
+      { wch: 12 }, // Katılım
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Yoklamalar');
+
+    // Generate filename: tarih_yapılan işlem_öğrenci adı soyadı.xlsx
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const operationType = filename.replace('.xlsx', ''); // 'yoklama-listesi'
+    
+    let finalFilename;
+    if (studentName && studentName !== '-') {
+      // Öğrenci adındaki boşlukları alt çizgi ile değiştir
+      const sanitizedName = studentName.replace(/\s+/g, '_');
+      finalFilename = `${dateStr}_${operationType}_${sanitizedName}.xlsx`;
+    } else {
+      finalFilename = `${dateStr}_${operationType}.xlsx`;
+    }
 
     // Write file
     XLSX.writeFile(workbook, finalFilename);

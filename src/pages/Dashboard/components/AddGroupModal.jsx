@@ -93,7 +93,7 @@ export default function AddGroupModal({ isOpen, onClose }) {
           aria-label="Kapat"
           disabled={isSubmitting}
         >
-          <X style={{ width: '24px', height: '24px', color: '#5677fb' }} />
+          <X style={{ width: '24px', height: '24px', color: '#ff7b00' }} />
         </button>
 
         <h1 className="add-group-modal__title">Yeni Grup Ekle</h1>

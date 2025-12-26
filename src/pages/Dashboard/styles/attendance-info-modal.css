@@ -26,7 +26,7 @@
   max-width: 1100px;
   max-height: 90vh;
   background: #ffffff;
-  border: 3px solid #5677fb;
+  border: 3px solid #ff7b00;
   border-radius: 24px;
   padding: 40px;
   display: flex;
@@ -59,7 +59,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 40px;
   font-weight: 800;
-  color: #5677fb;
+  color: #ff7b00;
   margin: 0 0 24px 0;
   text-align: left;
 }
@@ -72,7 +72,7 @@
   gap: 16px;
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 2px solid rgba(86, 119, 251, 0.2);
+  border-bottom: 2px solid rgba(255, 123, 0, 0.2);
 }
 
 .attendance-info-modal__avatar {
@@ -80,7 +80,7 @@
   height: 60px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #5677fb;
+  border: 3px solid #ff7b00;
   flex-shrink: 0;
 }
 
@@ -94,7 +94,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 20px;
   font-weight: 800;
-  color: #5677fb;
+  color: #ff7b00;
   text-align: left;
   white-space: nowrap;
 }
@@ -117,7 +117,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #5677fb;
+  color: #ff7b00;
 }
 
 .attendance-info-modal__info-value {
@@ -128,7 +128,7 @@
 }
 
 .attendance-info-modal__excel-btn {
-  background: #5677fb;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -169,17 +169,17 @@
 }
 
 .attendance-info-modal__list::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
   border-radius: 3px;
 }
 
 .attendance-info-modal__list::-webkit-scrollbar-thumb {
-  background: #5677fb;
+  background: #ff7b00;
   border-radius: 3px;
 }
 
 .attendance-info-modal__list::-webkit-scrollbar-thumb:hover {
-  background: #4566e8;
+  background: #ff7b00;
 }
 
 /* Attendance Row */
@@ -196,7 +196,7 @@
 }
 
 .attendance-info-modal__row:hover {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
 }
 
 .attendance-info-modal__row-avatar {
@@ -204,7 +204,7 @@
   height: 50px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #5677fb;
+  border: 2px solid #ff7b00;
   flex-shrink: 0;
 }
 
@@ -235,7 +235,7 @@
 .attendance-info-modal__row-indicator {
   width: 4px;
   height: 50px;
-  background: #5677fb;
+  background: #ff7b00;
   border-radius: 999px;
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import StudentImage from './StudentImage';
 
@@ -163,8 +163,6 @@ function RelativesCard({ title, relatives = [] }) {
 }
 
 export default function StudentDetailsPanel({ student, loading = false }) {
-  const [paymentStatus, setPaymentStatus] = useState(0); // 0: grey (default), 1: green, 2: red
-  
   if (loading) {
     return (
       <section className="dash-right">
@@ -189,18 +187,20 @@ export default function StudentDetailsPanel({ student, loading = false }) {
   const parents = student?.parents || {};
   const relatives = Array.isArray(student?.relatives) ? student.relatives : [];
   const training = student?.trainingParticipation ?? 60;
-
-  const handlePaymentToggle = () => {
-    setPaymentStatus((prev) => (prev + 1) % 3); // Cycle through 0, 1, 2
-  };
+  
+  // Use the same paymentStatus logic as PaymentListPanel
+  const paymentStatus = student?.paymentStatus || 'unpaid'; // 'paid', 'unpaid'
 
   const getPaymentButtonClass = () => {
-    switch (paymentStatus) {
-      case 0: return 'dash-paid dash-paid--grey';
-      case 1: return 'dash-paid dash-paid--green';
-      case 2: return 'dash-paid dash-paid--red';
-      default: return 'dash-paid dash-paid--grey';
-    }
+    return paymentStatus === 'paid' 
+      ? 'dash-paid dash-paid--green' 
+      : 'dash-paid dash-paid--red';
+  };
+
+  const getPaymentButtonText = () => {
+    return paymentStatus === 'paid' 
+      ? 'Ödeme Yapıldı' 
+      : 'Ödeme Yapılmadı';
   };
 
   return (
@@ -231,8 +231,8 @@ export default function StudentDetailsPanel({ student, loading = false }) {
           </div>
         </div>
 
-        <button type="button" className={getPaymentButtonClass()} onClick={handlePaymentToggle}>
-          Ödeme Alındı
+        <button type="button" className={getPaymentButtonClass()}>
+          {getPaymentButtonText()}
         </button>
       </div>
     </section>

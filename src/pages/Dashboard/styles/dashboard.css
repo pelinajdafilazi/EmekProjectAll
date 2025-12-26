@@ -61,11 +61,11 @@
 }
 
 .dash-nav__link:hover {
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .dash-nav__link--active {
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .dash-nav__link--active::after {
@@ -75,12 +75,12 @@
   right: 0;
   bottom: -6px;
   height: 1px;
-  background: #5677FB;
+  background: #ff7b00;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .dash-nav__cta {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -142,24 +142,24 @@
 }
 
 .dash-left::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 3px;
 }
 
 .dash-left::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   border-radius: 3px;
 }
 
 .dash-left::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
+  background: rgba(255, 123, 0, 0.5);
 }
 
 .dash-left__title {
   font-family: 'Montserrat', sans-serif;
   font-size: 40px;
   font-weight: 800;
-  color: #5677FB;
+  color: #ff7b00;
   margin: 80px 0 35px;
   flex-shrink: 0;
 }
@@ -188,7 +188,7 @@
 }
 
 .dash-search-input:focus {
-  border-color: #5677FB;
+  border-color: #ff7b00;
 }
 
 .dash-search-icon {
@@ -209,7 +209,7 @@
 /* Attendance/Yoklamalar Search Input - Bottom Border Only */
 .dash-search-input--attendance {
   border: none;
-  border-bottom: 2px solid #5677FB;
+  border-bottom: 2px solid #ff7b00;
   border-radius: 0;
   background-color: transparent;
   box-shadow: none;
@@ -218,18 +218,18 @@
 
 .dash-search-input--attendance:focus {
   border: none;
-  border-bottom: 2px solid #5677FB;
+  border-bottom: 2px solid #ff7b00;
   box-shadow: none;
 }
 
 .dash-search-icon--attendance {
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 /* Attendance Student List Scrollbar */
 .attendance-student-list {
   scrollbar-width: thin;
-  scrollbar-color: rgba(86, 119, 251, 0.3) rgba(86, 119, 251, 0.05);
+  scrollbar-color: rgba(255, 123, 0, 0.3) rgba(255, 123, 0, 0.05);
 }
 
 .attendance-student-list::-webkit-scrollbar {
@@ -237,17 +237,41 @@
 }
 
 .attendance-student-list::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 3px;
 }
 
 .attendance-student-list::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   border-radius: 3px;
 }
 
 .attendance-student-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
+  background: rgba(255, 123, 0, 0.5);
+}
+
+/* Attendance Lesson List - Scrollable list of lessons */
+.attendance-lesson-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 123, 0, 0.3) rgba(255, 123, 0, 0.05);
+}
+
+.attendance-lesson-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.attendance-lesson-list::-webkit-scrollbar-track {
+  background: rgba(255, 123, 0, 0.05);
+  border-radius: 3px;
+}
+
+.attendance-lesson-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 123, 0, 0.3);
+  border-radius: 3px;
+}
+
+.attendance-lesson-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 123, 0, 0.5);
 }
 
 .dash-left__groups {
@@ -258,7 +282,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 24px;
-  color: #5677FB;
+  color: #ff7b00;
   margin-bottom: 10px;
   width: 117px;
   height: 23px;
@@ -270,7 +294,7 @@
   display: flex;
   gap: 20px;
   width: 100%;
-  max-width: 561px;
+  max-width: 400px;
   height: 37px;
   align-items: center;
   margin-bottom: 4px;
@@ -308,11 +332,11 @@
 }
 
 .dash-left__tab:hover {
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .dash-left__tab--active {
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .dash-left__tab--active::after {
@@ -322,7 +346,7 @@
   right: 0;
   bottom: -4px;
   height: 1px;
-  background: #5677FB;
+  background: #ff7b00;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
@@ -347,6 +371,14 @@
   max-width: 494px;
 }
 
+/* Grup listesi için özel stil - scroll bar yaş aralığından hemen sonra başlamalı */
+.dash-list--groups {
+  /* Genişlik: Grup Adı(200) + Gap(12) + Yaş Aralığı(80) + Padding(24) + Scrollbar(8) = 324px */
+  width: 324px;
+  min-width: 324px;
+  max-width: 324px;
+}
+
 /* Ders listesi için satır arası boşluk */
 .dash-list--lessons {
   gap: 12px;
@@ -357,17 +389,17 @@
 }
 
 .dash-list::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 3px;
 }
 
 .dash-list::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   border-radius: 3px;
 }
 
 .dash-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
+  background: rgba(255, 123, 0, 0.5);
 }
 
 .dash-row {
@@ -412,7 +444,7 @@
 
 .dash-row--lessons .dash-row__meta--attendance {
   text-align: left;
-  color: #5677fb;
+  color: #ff7b00;
 }
 
 .dash-row:hover {
@@ -425,7 +457,7 @@
   height: 36px;
   border-radius: 999px;
   overflow: hidden;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
 }
 
 .dash-row__avatar img {
@@ -464,7 +496,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .dash-row__indicator {
@@ -478,15 +510,15 @@
 }
 
 .dash-row--active .dash-row__indicator {
-  background: #5677FB;
+  background: #ff7b00;
 }
 
 .dash-row--groups {
   grid-template-columns: 200px 80px;
   gap: 12px;
   justify-content: start;
-  max-width: 320px;
-  width: fit-content;
+  width: 316px;
+  max-width: 316px;
   padding: 6px 12px;
   position: relative;
 }
@@ -554,28 +586,64 @@
 }
 
 .dash-scrollable::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 3px;
 }
 
 .dash-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   border-radius: 3px;
 }
 
 .dash-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
+  background: rgba(255, 123, 0, 0.5);
 }
 
 /* Attendance Page - Move section to the left */
 .dash-right--attendance {
-  margin-left: -110px;
+  margin-left: 0;
+}
+
+/* Ensure group-header in attendance page matches groups page exactly */
+.dash-right--attendance .group-header {
+  background: #ff7b00;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  padding: 10px 12px;
+  text-align: center;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  margin-left: 0;
+  margin-right: -40px;
+  width: calc(100% + 40px);
+  max-width: none;
+  align-self: flex-start;
+}
+
+/* Ensure lesson-header in attendance page matches groups page exactly */
+.dash-right--attendance .lesson-header {
+  background: #ff7b00;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  padding: 10px 12px;
+  text-align: center;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  margin-left: 0;
+  margin-right: -40px;
+  width: calc(100% + 40px);
+  max-width: none;
+  align-self: flex-start;
 }
 
 /* Attendance Date Picker Styles */
 .attendance-date-picker {
-  border: 1.5px solid #5b7ce6;
-  background: linear-gradient(135deg, rgba(91, 124, 230, 0.08) 0%, rgba(91, 124, 230, 0.04) 100%);
+  border: 1.5px solid #ff7b00;
+  background: linear-gradient(135deg, rgba(255, 123, 0, 0.08) 0%, rgba(255, 123, 0, 0.04) 100%);
   color: #1f2937;
   font-family: 'Montserrat', sans-serif;
   font-size: 0.875rem;
@@ -587,20 +655,20 @@
   transition: all 0.3s ease;
   min-width: 90px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(91, 124, 230, 0.15);
+  box-shadow: 0 2px 4px rgba(255, 123, 0, 0.15);
 }
 
 .attendance-date-picker:hover {
-  background: linear-gradient(135deg, rgba(91, 124, 230, 0.15) 0%, rgba(91, 124, 230, 0.08) 100%);
-  border-color: #4a6ad4;
-  box-shadow: 0 3px 8px rgba(91, 124, 230, 0.25);
+  background: linear-gradient(135deg, rgba(255, 123, 0, 0.15) 0%, rgba(255, 123, 0, 0.08) 100%);
+  border-color: #cc6200;
+  box-shadow: 0 3px 8px rgba(255, 123, 0, 0.25);
   transform: translateY(-1px);
 }
 
 .attendance-date-picker:focus {
-  background: linear-gradient(135deg, rgba(91, 124, 230, 0.18) 0%, rgba(91, 124, 230, 0.1) 100%);
-  border-color: #3a58c2;
-  box-shadow: 0 0 0 3px rgba(91, 124, 230, 0.2), 0 3px 8px rgba(91, 124, 230, 0.3);
+  background: linear-gradient(135deg, rgba(255, 123, 0, 0.18) 0%, rgba(255, 123, 0, 0.1) 100%);
+  border-color: #b85700;
+  box-shadow: 0 0 0 3px rgba(255, 123, 0, 0.2), 0 3px 8px rgba(255, 123, 0, 0.3);
 }
 
 /* DatePicker styles for attendance panel */
@@ -614,13 +682,13 @@
 
 .dash-right--attendance .react-datepicker {
   font-family: 'Montserrat', sans-serif;
-  border: 2px solid #5b7ce6;
+  border: 2px solid #ff7b00;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(91, 124, 230, 0.2);
+  box-shadow: 0 8px 24px rgba(255, 123, 0, 0.2);
 }
 
 .dash-right--attendance .react-datepicker__header {
-  background: #5b7ce6;
+  background: #ff7b00;
   border-bottom: none;
   border-radius: 6px 6px 0 0;
   padding-top: 8px;
@@ -640,19 +708,19 @@
 
 .dash-right--attendance .react-datepicker__day--selected,
 .dash-right--attendance .react-datepicker__day--keyboard-selected {
-  background: #5b7ce6;
+  background: #ff7b00;
   color: #FFFFFF;
   border-radius: 4px;
   font-weight: 600;
 }
 
 .dash-right--attendance .react-datepicker__day:hover {
-  background: rgba(91, 124, 230, 0.1);
+  background: rgba(255, 123, 0, 0.1);
   border-radius: 4px;
 }
 
 .dash-right--attendance .react-datepicker__day--selected:hover {
-  background: #4a68c5;
+  background: #cc6200;
 }
 
 .dash-right--attendance .react-datepicker__navigation-icon::before {
@@ -662,19 +730,19 @@
 .dash-right--attendance .react-datepicker__year-dropdown,
 .dash-right--attendance .react-datepicker__month-dropdown {
   background: #FFFFFF;
-  border: 1px solid #5b7ce6;
+  border: 1px solid #ff7b00;
   border-radius: 4px;
   font-family: 'Montserrat', sans-serif;
 }
 
 .dash-right--attendance .react-datepicker__year-option:hover,
 .dash-right--attendance .react-datepicker__month-option:hover {
-  background: rgba(91, 124, 230, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .dash-right--attendance .react-datepicker__year-option--selected,
 .dash-right--attendance .react-datepicker__month-option--selected {
-  background: #5b7ce6;
+  background: #ff7b00;
   color: #FFFFFF;
 }
 
@@ -691,17 +759,17 @@
 }
 
 .dash-right::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 3px;
 }
 
 .dash-right::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   border-radius: 3px;
 }
 
 .dash-right::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
+  background: rgba(255, 123, 0, 0.5);
 }
 
 .dash-top {
@@ -724,7 +792,7 @@
   width: 120px;
   height: 120px;
   border-radius: 999px;
-  border: 3px solid #5677FB;
+  border: 3px solid #ff7b00;
   padding: 4px;
   background: #ffffff;
 }
@@ -742,7 +810,7 @@
 
 .dash-profile__name {
   font-family: 'Montserrat', sans-serif;
-  color: #5677FB;
+  color: #ff7b00;
   font-weight: 900;
   font-size: 16px;
   text-align: center;
@@ -755,7 +823,7 @@
 .dash-info {
   width: 546px;
   height: 171px;
-  border: 1px solid #5677FB;
+  border: 1px solid #ff7b00;
   border-radius: 8px;
   overflow: hidden;
   background: #ffffff;
@@ -766,23 +834,23 @@
 .dash-info__grid-row {
   display: grid;
   grid-template-columns: 110px 163px 100px 163px;
-  border-bottom: 1px solid #5677FB;
+  border-bottom: 1px solid #ff7b00;
   height: 38px;
   min-height: 38px;
   max-height: 38px;
 }
 
 .dash-info__grid-row:last-of-type {
-  border-bottom: 1px solid #5677FB;
+  border-bottom: 1px solid #ff7b00;
 }
 
 .dash-info__label {
   padding: 4px 8px;
   font-family: 'Montserrat', sans-serif;
-  color: #5677FB;
+  color: #ff7b00;
   font-weight: 700;
   font-size: 11px;
-  border-right: 1px solid #5677FB;
+  border-right: 1px solid #ff7b00;
   background: #ffffff;
   display: flex;
   align-items: center;
@@ -800,7 +868,7 @@
   background: #ffffff;
   display: flex;
   align-items: center;
-  border-right: 1px solid #5677FB;
+  border-right: 1px solid #ff7b00;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -822,10 +890,10 @@
 .dash-info__address-label {
   padding: 4px 8px;
   font-family: 'Montserrat', sans-serif;
-  color: #5677FB;
+  color: #ff7b00;
   font-weight: 700;
   font-size: 11px;
-  border-right: 1px solid #5677FB;
+  border-right: 1px solid #ff7b00;
   height: 100%;
   display: flex;
   align-items: center;
@@ -865,7 +933,7 @@
 }
 
 .dash-parents__header {
-  background: #5677FB;
+  background: #ff7b00;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
@@ -897,7 +965,7 @@
 .dash-parents__label {
   padding: 6px 10px;
   font-family: 'Montserrat', sans-serif;
-  color: #5677FB;
+  color: #ff7b00;
   font-weight: 700;
   font-size: 11px;
   background: #ffffff;
@@ -952,7 +1020,7 @@
 }
 
 .dash-rel__header {
-  background: #5677FB;
+  background: #ff7b00;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
@@ -985,7 +1053,7 @@
 .dash-rel__label {
   padding: 6px 10px;
   font-family: 'Montserrat', sans-serif;
-  color: #5677FB;
+  color: #ff7b00;
   font-weight: 700;
   font-size: 11px;
   background: #ffffff;
@@ -1043,7 +1111,7 @@
 
 .dash-attendance__label {
   font-family: 'Montserrat', sans-serif;
-  color: #5677FB;
+  color: #ff7b00;
   font-weight: 500;
   font-size: 14px;
   white-space: nowrap;
@@ -1057,7 +1125,7 @@
 }
 
 .dash-attendance__chevron-icon {
-  color: #5677FB;
+  color: #ff7b00;
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -1066,7 +1134,7 @@
   flex: 1;
   max-width: 280px;
   height: 6px;
-  background: rgba(86, 119, 251, 0.25);
+  background: rgba(255, 123, 0, 0.25);
   border-radius: 999px;
   overflow: hidden;
   position: relative;
@@ -1074,14 +1142,14 @@
 
 .dash-attendance__fill {
   height: 100%;
-  background: #5677FB;
+  background: #ff7b00;
   border-radius: 999px;
   transition: width 0.3s;
 }
 
 .dash-attendance__toggle {
   display: flex;
-  border: 1px solid #5677FB;
+  border: 1px solid #ff7b00;
   border-radius: 20px;
   overflow: hidden;
 }
@@ -1099,12 +1167,12 @@
 }
 
 .dash-attendance__btn:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .dash-attendance__btn--active {
-  color: #5677FB;
-  background: rgba(86, 119, 251, 0.1);
+  color: #ff7b00;
+  background: rgba(255, 123, 0, 0.1);
 }
 
 
@@ -1142,7 +1210,7 @@
 
 /* Groups Page Styles */
 .groups-add-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -1182,7 +1250,8 @@
   margin-top: 16px;
   margin-bottom: 8px;
   flex-shrink: 0;
-  max-width: 320px;
+  width: 316px;
+  max-width: 316px;
   align-items: center;
 }
 
@@ -1190,7 +1259,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 500;
   font-size: 14px;
-  color: #5677FB;
+  color: #ff7b00;
   text-align: left;
   position: relative;
   padding-bottom: 8px;
@@ -1206,7 +1275,7 @@
   right: 0;
   bottom: 0;
   height: 1px;
-  background: #5677FB;
+  background: #ff7b00;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
 }
 
@@ -1234,7 +1303,7 @@
 }
 
 .groups-table__row:hover {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 8px;
 }
 
@@ -1250,7 +1319,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .groups-table__indicator {
@@ -1265,12 +1334,12 @@
 }
 
 .groups-table__row--active .groups-table__indicator {
-  background: #5677FB;
+  background: #ff7b00;
 }
 
 /* Group Details Panel */
 .group-header {
-  background: #5677FB;
+  background: #ff7b00;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
@@ -1305,7 +1374,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 18px;
-  color: #5677FB;
+  color: #ff7b00;
   margin-bottom: 12px;
 }
 
@@ -1326,7 +1395,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 12px;
-  color: #5677FB;
+  color: #ff7b00;
   min-width: 80px;
 }
 
@@ -1340,7 +1409,7 @@
 .group-info__input {
   flex: 1;
   border: none;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.3);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.3);
   border-radius: 0;
   padding: 6px 0;
   background: transparent;
@@ -1353,7 +1422,7 @@
 }
 
 .group-info__input:focus {
-  border-bottom-color: #5677FB;
+  border-bottom-color: #ff7b00;
   border-bottom-width: 2px;
 }
 
@@ -1396,7 +1465,7 @@
 
 .group-info__edit-btn,
 .group-info__save-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -1421,8 +1490,8 @@
 
 .group-info__cancel-btn {
   background: transparent;
-  border: 2px solid #5677FB;
-  color: #5677FB;
+  border: 2px solid #ff7b00;
+  color: #ff7b00;
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 14px;
@@ -1433,7 +1502,7 @@
 }
 
 .group-info__cancel-btn:hover:not(:disabled) {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .group-info__cancel-btn:disabled {
@@ -1476,7 +1545,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 18px;
-  color: #5677FB;
+  color: #ff7b00;
   margin-bottom: 16px;
 }
 
@@ -1494,17 +1563,17 @@
 }
 
 .group-students__list::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 3px;
 }
 
 .group-students__list::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   border-radius: 3px;
 }
 
 .group-students__list::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
+  background: rgba(255, 123, 0, 0.5);
 }
 
 .group-student-row {
@@ -1519,7 +1588,7 @@
 }
 
 .group-student-row:hover {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 8px;
 }
 
@@ -1528,7 +1597,7 @@
   height: 44px;
   border-radius: 999px;
   overflow: hidden;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
 }
 
 .group-student-row__avatar img {
@@ -1563,7 +1632,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .group-student-row__indicator {
@@ -1578,7 +1647,7 @@
 }
 
 .group-students__assign-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -1612,7 +1681,7 @@
   grid-template-columns: 1.2fr 1fr 1fr 0.8fr 0.8fr;
   gap: 12px;
   padding: 10px 12px;
-  border-bottom: 1px solid #5677FB;
+  border-bottom: 1px solid #ff7b00;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
 }
 
@@ -1620,7 +1689,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 500;
   font-size: 14px;
-  color: #5677FB;
+  color: #ff7b00;
   text-align: left;
 }
 
@@ -1647,7 +1716,7 @@
 }
 
 .lessons-table__row:hover {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 8px;
 }
 
@@ -1663,7 +1732,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .lessons-table__indicator {
@@ -1678,12 +1747,12 @@
 }
 
 .lessons-table__row--active .lessons-table__indicator {
-  background: #5677FB;
+  background: #ff7b00;
 }
 
 /* Lesson Details Panel */
 .lesson-header {
-  background: #5677FB;
+  background: #ff7b00;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
@@ -1717,7 +1786,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 18px;
-  color: #5677FB;
+  color: #ff7b00;
   margin-bottom: 12px;
 }
 
@@ -1738,7 +1807,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 12px;
-  color: #5677FB;
+  color: #ff7b00;
   min-width: 140px;
   flex-shrink: 0;
 }
@@ -1759,7 +1828,7 @@
   flex: 1;
   width: 100%;
   border: none;
-  border-bottom: 2px solid rgba(86, 119, 251, 0.3);
+  border-bottom: 2px solid rgba(255, 123, 0, 0.3);
   border-radius: 0;
   padding: 6px 0;
   background: transparent;
@@ -1773,7 +1842,7 @@
 }
 
 .lesson-info__input:focus {
-  border-bottom-color: #5677FB;
+  border-bottom-color: #ff7b00;
   border-bottom-width: 2px;
 }
 
@@ -1783,24 +1852,24 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   border: none;
-  border-bottom: 2px solid rgba(86, 119, 251, 0.3);
+  border-bottom: 2px solid rgba(255, 123, 0, 0.3);
   border-radius: 0;
   background: transparent;
   padding: 6px 0;
   padding-right: 30px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235677FB' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ff7b00' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0 center;
   cursor: pointer;
 }
 
 .lesson-info__input select:focus {
-  border-bottom-color: #5677FB;
+  border-bottom-color: #ff7b00;
   border-bottom-width: 2px;
 }
 
 .lesson-info__input select:focus {
-  border-color: #5677FB;
+  border-color: #ff7b00;
 }
 
 .lesson-info__day-selector {
@@ -1816,7 +1885,7 @@
   justify-content: space-between;
   gap: 8px;
   border: none;
-  border-bottom: 2px solid rgba(86, 119, 251, 0.3);
+  border-bottom: 2px solid rgba(255, 123, 0, 0.3);
   border-radius: 0;
   background: transparent;
   padding: 6px 0;
@@ -1830,7 +1899,7 @@
 }
 
 .lesson-info__day-button:hover {
-  border-bottom-color: #5677FB;
+  border-bottom-color: #ff7b00;
 }
 
 .lesson-info__day-dropdown {
@@ -1840,7 +1909,7 @@
   right: 0;
   margin-top: 4px;
   background: #ffffff;
-  border: 1px solid rgba(86, 119, 251, 0.3);
+  border: 1px solid rgba(255, 123, 0, 0.3);
   border-radius: 8px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
@@ -1856,7 +1925,7 @@
   cursor: pointer;
   transition: background 0.2s;
   border: none;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.1);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.1);
   background: transparent;
   text-align: left;
   font-family: 'Montserrat', sans-serif;
@@ -1870,12 +1939,12 @@
 }
 
 .lesson-info__day-item:hover {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
 }
 
 .lesson-info__day-item--active {
-  background: rgba(86, 119, 251, 0.1);
-  color: #5677FB;
+  background: rgba(255, 123, 0, 0.1);
+  color: #ff7b00;
   font-weight: 600;
 }
 
@@ -1886,7 +1955,7 @@
 
 .lesson-info__edit-btn,
 .lesson-info__save-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -1905,8 +1974,8 @@
 
 .lesson-info__cancel-btn {
   background: transparent;
-  border: 2px solid #5677FB;
-  color: #5677FB;
+  border: 2px solid #ff7b00;
+  color: #ff7b00;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   font-size: 12px;
@@ -1917,7 +1986,7 @@
 }
 
 .lesson-info__cancel-btn:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .lesson-info__delete-btn {
@@ -1964,7 +2033,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 18px;
-  color: #5677FB;
+  color: #ff7b00;
   margin: 0;
 }
 
@@ -1972,7 +2041,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   font-size: 18px;
-  color: #5677fb;
+  color: #ff7b00;
   flex-shrink: 0;
 }
 
@@ -1988,7 +2057,7 @@
 }
 
 .lesson-student-row:hover {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 8px;
 }
 
@@ -2028,7 +2097,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .lesson-student-row__indicator {
@@ -2043,7 +2112,7 @@
 }
 
 .lesson-students__assign-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -2080,7 +2149,7 @@
   width: auto;
   min-width: 80px;
   padding: 8px 16px;
-  background: #5677FB;
+  background: #ff7b00;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -2096,19 +2165,19 @@
 .dash-left__general-btn:hover {
   background: #4566e8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(86, 119, 251, 0.3);
+  box-shadow: 0 4px 8px rgba(255, 123, 0, 0.3);
 }
 
 .dash-left__general-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(86, 119, 251, 0.2);
+  box-shadow: 0 2px 4px rgba(255, 123, 0, 0.2);
 }
 
 .dash-left__date-label {
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   font-weight: 600;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .dash-left__date-picker-wrapper {
@@ -2141,7 +2210,7 @@
 }
 
 .dash-left__date-picker-icon {
-  color: #5677FB;
+  color: #ff7b00;
   flex-shrink: 0;
   pointer-events: none;
 }
@@ -2160,12 +2229,12 @@
   left: 0;
   width: 45%;
   height: 1px;
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   transition: all 0.2s;
 }
 
 .dash-left__months .react-datepicker-wrapper:focus-within::after {
-  background: #5677FB;
+  background: #ff7b00;
   height: 2px;
   width: 45%;
 }
@@ -2199,13 +2268,13 @@
 /* DatePicker popup styles for payment list */
 .dash-left .react-datepicker {
   font-family: 'Montserrat', sans-serif;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(86, 119, 251, 0.2);
+  box-shadow: 0 8px 24px rgba(255, 123, 0, 0.2);
 }
 
 .dash-left .react-datepicker__header {
-  background: #5677FB;
+  background: #ff7b00;
   border-bottom: none;
   border-radius: 6px 6px 0 0;
   padding-top: 8px;
@@ -2225,14 +2294,14 @@
 
 .dash-left .react-datepicker__day--selected,
 .dash-left .react-datepicker__day--keyboard-selected {
-  background: #5677FB;
+  background: #ff7b00;
   color: #FFFFFF;
   border-radius: 4px;
   font-weight: 600;
 }
 
 .dash-left .react-datepicker__day:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
   border-radius: 4px;
 }
 
@@ -2247,19 +2316,19 @@
 .dash-left .react-datepicker__year-dropdown,
 .dash-left .react-datepicker__month-dropdown {
   background: #FFFFFF;
-  border: 1px solid #5677FB;
+  border: 1px solid #ff7b00;
   border-radius: 4px;
   font-family: 'Montserrat', sans-serif;
 }
 
 .dash-left .react-datepicker__year-option:hover,
 .dash-left .react-datepicker__month-option:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .dash-left .react-datepicker__year-option--selected,
 .dash-left .react-datepicker__month-option--selected {
-  background: #5677FB;
+  background: #ff7b00;
   color: #FFFFFF;
 }
 
@@ -2278,7 +2347,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
   font-weight: 500;
-  color: #5677FB;
+  color: #ff7b00;
   padding: 0;
   transition: color 0.2s;
   display: flex;
@@ -2332,7 +2401,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background-color: #5677FB;
+  background-color: #ff7b00;
   opacity: 0;
   transition: opacity 0.2s;
 }
@@ -2376,7 +2445,7 @@
 
 /* Payment Details Panel - Right Side */
 .payment-header {
-  background: #5677FB;
+  background: #ff7b00;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
@@ -2405,7 +2474,7 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   font-size: 13px;
-  color: #5677FB;
+  color: #ff7b00;
   text-align: center;
   position: relative;
   padding-bottom: 8px;
@@ -2421,7 +2490,7 @@
   right: 0;
   bottom: 0;
   height: 1px;
-  background: #5677FB;
+  background: #ff7b00;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
 }
 
@@ -2480,11 +2549,11 @@
 }
 
 .payment-table__input:hover {
-  background-color: rgba(86, 119, 251, 0.05);
+  background-color: rgba(255, 123, 0, 0.05);
 }
 
 .payment-table__input:focus {
-  background-color: rgba(86, 119, 251, 0.1);
+  background-color: rgba(255, 123, 0, 0.1);
   border-radius: 4px;
 }
 
@@ -2504,11 +2573,11 @@
 }
 
 .payment-table__date-input:hover {
-  background-color: rgba(86, 119, 251, 0.05);
+  background-color: rgba(255, 123, 0, 0.05);
 }
 
 .payment-table__date-input:focus {
-  background-color: rgba(86, 119, 251, 0.1);
+  background-color: rgba(255, 123, 0, 0.1);
   border-radius: 4px;
 }
 
@@ -2523,7 +2592,7 @@
 
 .payment-table__cell--debt {
   font-weight: 600;
-  background-color: rgba(86, 119, 251, 0.05);
+  background-color: rgba(255, 123, 0, 0.05);
   border-radius: 4px;
 }
 
@@ -2557,7 +2626,7 @@
 }
 
 .payment-table__edit-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #FFFFFF;
   padding: 8px 12px;
@@ -2567,18 +2636,18 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(86, 119, 251, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 123, 0, 0.2);
 }
 
 .payment-table__edit-btn:hover {
   background: #4563D9;
-  box-shadow: 0 4px 12px rgba(86, 119, 251, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.3);
   transform: translateY(-1px);
 }
 
 .payment-table__edit-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(86, 119, 251, 0.2);
+  box-shadow: 0 2px 6px rgba(255, 123, 0, 0.2);
 }
 
 .payment-table__edit-btn:disabled {
@@ -2696,24 +2765,24 @@
 }
 
 .payment-table__cell .react-datepicker__input-container input:hover {
-  background-color: rgba(86, 119, 251, 0.05);
+  background-color: rgba(255, 123, 0, 0.05);
 }
 
 .payment-table__cell .react-datepicker__input-container input:focus {
-  background-color: rgba(86, 119, 251, 0.1);
+  background-color: rgba(255, 123, 0, 0.1);
   border-radius: 4px;
 }
 
 /* Custom DatePicker for Payment Modal */
 .payment-modal .react-datepicker {
   font-family: 'Montserrat', sans-serif;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(86, 119, 251, 0.2);
+  box-shadow: 0 8px 24px rgba(255, 123, 0, 0.2);
 }
 
 .payment-modal .react-datepicker__header {
-  background: #5677FB;
+  background: #ff7b00;
   border-bottom: none;
   border-radius: 6px 6px 0 0;
   padding-top: 8px;
@@ -2733,14 +2802,14 @@
 
 .payment-modal .react-datepicker__day--selected,
 .payment-modal .react-datepicker__day--keyboard-selected {
-  background: #5677FB;
+  background: #ff7b00;
   color: #FFFFFF;
   border-radius: 4px;
   font-weight: 600;
 }
 
 .payment-modal .react-datepicker__day:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
   border-radius: 4px;
 }
 
@@ -2755,19 +2824,19 @@
 .payment-modal .react-datepicker__year-dropdown,
 .payment-modal .react-datepicker__month-dropdown {
   background: #FFFFFF;
-  border: 1px solid #5677FB;
+  border: 1px solid #ff7b00;
   border-radius: 4px;
   font-family: 'Montserrat', sans-serif;
 }
 
 .payment-modal .react-datepicker__year-option:hover,
 .payment-modal .react-datepicker__month-option:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .payment-modal .react-datepicker__year-option--selected,
 .payment-modal .react-datepicker__month-option--selected {
-  background: #5677FB;
+  background: #ff7b00;
   color: #FFFFFF;
 }
 
@@ -2841,12 +2910,12 @@
 }
 
 .payment-table__body::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.2);
+  background: rgba(255, 123, 0, 0.2);
   border-radius: 999px;
 }
 
 .payment-table__body::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
 }
 
 /* ===========================================
@@ -2871,7 +2940,7 @@
 .payment-modal {
   position: relative;
   background: #FFFFFF;
-  border: 3px solid #5677FB;
+  border: 3px solid #ff7b00;
   border-radius: 24px;
   width: 95%;
   max-width: 1200px;
@@ -2904,7 +2973,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 28px;
   font-weight: 800;
-  color: #5677FB;
+  color: #ff7b00;
   margin: 0 0 24px 0;
   text-align: center;
 }
@@ -2915,7 +2984,7 @@
   gap: 16px;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.2);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.2);
 }
 
 .payment-modal__avatar {
@@ -2923,7 +2992,7 @@
   height: 50px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
   flex-shrink: 0;
 }
 
@@ -2937,12 +3006,12 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 18px;
   font-weight: 700;
-  color: #5677FB;
+  color: #ff7b00;
   flex: 1;
 }
 
 .payment-modal__excel-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #FFFFFF;
   font-family: 'Montserrat', sans-serif;
@@ -2974,17 +3043,17 @@
 }
 
 .payment-modal__table-body::-webkit-scrollbar-track {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
   border-radius: 3px;
 }
 
 .payment-modal__table-body::-webkit-scrollbar-thumb {
-  background: rgba(86, 119, 251, 0.3);
+  background: rgba(255, 123, 0, 0.3);
   border-radius: 3px;
 }
 
 .payment-modal__table-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(86, 119, 251, 0.5);
+  background: rgba(255, 123, 0, 0.5);
 }
 
 .payment-modal__actions {
@@ -2996,7 +3065,7 @@
 }
 
 .payment-modal__add-row-btn {
-  background: #5677FB;
+  background: #ff7b00;
   border: none;
   color: #FFFFFF;
   font-family: 'Montserrat', sans-serif;
@@ -3009,7 +3078,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(86, 119, 251, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.2);
 }
 
 .payment-modal__add-row-btn:hover {
@@ -3056,7 +3125,7 @@
 .add-payment-modal {
   position: relative;
   background: #FFFFFF;
-  border: 3px solid #5677FB;
+  border: 3px solid #ff7b00;
   border-radius: 24px;
   width: 90%;
   max-width: 600px;
@@ -3089,7 +3158,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 28px;
   font-weight: 800;
-  color: #5677FB;
+  color: #ff7b00;
   margin: 0 0 24px 0;
   text-align: center;
 }
@@ -3100,7 +3169,7 @@
   gap: 16px;
   margin-bottom: 32px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.2);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.2);
 }
 
 .add-payment-modal__avatar {
@@ -3108,7 +3177,7 @@
   height: 60px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #5677FB;
+  border: 3px solid #ff7b00;
   flex-shrink: 0;
 }
 
@@ -3122,7 +3191,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 20px;
   font-weight: 700;
-  color: #5677FB;
+  color: #ff7b00;
   flex: 1;
 }
 
@@ -3159,7 +3228,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .add-payment-modal__required {
@@ -3169,7 +3238,7 @@
 .add-payment-modal__date-input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
   border-radius: 8px;
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
@@ -3183,7 +3252,7 @@
 .add-payment-modal__date-input:focus {
   outline: none;
   border-color: #4566e8;
-  box-shadow: 0 0 0 3px rgba(86, 119, 251, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 123, 0, 0.1);
 }
 
 .add-payment-modal__currency-input {
@@ -3196,7 +3265,7 @@
   width: 100%;
   padding: 12px 16px;
   padding-right: 60px;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
   border-radius: 8px;
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
@@ -3209,7 +3278,7 @@
 .add-payment-modal__input:focus {
   outline: none;
   border-color: #4566e8;
-  box-shadow: 0 0 0 3px rgba(86, 119, 251, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 123, 0, 0.1);
 }
 
 .add-payment-modal__currency {
@@ -3218,7 +3287,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  color: #5677FB;
+  color: #ff7b00;
   pointer-events: none;
 }
 
@@ -3232,8 +3301,8 @@
 
 .add-payment-modal__cancel-btn {
   background: transparent;
-  border: 2px solid #5677FB;
-  color: #5677FB;
+  border: 2px solid #ff7b00;
+  color: #ff7b00;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 16px;
@@ -3244,7 +3313,7 @@
 }
 
 .add-payment-modal__cancel-btn:hover:not(:disabled) {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .add-payment-modal__cancel-btn:disabled {
@@ -3278,13 +3347,13 @@
 /* DatePicker styles for Add Payment Modal */
 .add-payment-modal .react-datepicker {
   font-family: 'Montserrat', sans-serif;
-  border: 2px solid #5677FB;
+  border: 2px solid #ff7b00;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(86, 119, 251, 0.2);
+  box-shadow: 0 8px 24px rgba(255, 123, 0, 0.2);
 }
 
 .add-payment-modal .react-datepicker__header {
-  background: #5677FB;
+  background: #ff7b00;
   border-bottom: none;
   border-radius: 6px 6px 0 0;
   padding-top: 8px;
@@ -3304,14 +3373,14 @@
 
 .add-payment-modal .react-datepicker__day--selected,
 .add-payment-modal .react-datepicker__day--keyboard-selected {
-  background: #5677FB;
+  background: #ff7b00;
   color: #FFFFFF;
   border-radius: 4px;
   font-weight: 600;
 }
 
 .add-payment-modal .react-datepicker__day:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
   border-radius: 4px;
 }
 
@@ -3326,19 +3395,19 @@
 .add-payment-modal .react-datepicker__year-dropdown,
 .add-payment-modal .react-datepicker__month-dropdown {
   background: #FFFFFF;
-  border: 1px solid #5677FB;
+  border: 1px solid #ff7b00;
   border-radius: 4px;
   font-family: 'Montserrat', sans-serif;
 }
 
 .add-payment-modal .react-datepicker__year-option:hover,
 .add-payment-modal .react-datepicker__month-option:hover {
-  background: rgba(86, 119, 251, 0.1);
+  background: rgba(255, 123, 0, 0.1);
 }
 
 .add-payment-modal .react-datepicker__year-option--selected,
 .add-payment-modal .react-datepicker__month-option--selected {
-  background: #5677FB;
+  background: #ff7b00;
   color: #FFFFFF;
 }
 
@@ -3434,7 +3503,7 @@
 }
 
 .dash-left__search-input:focus {
-  border-color: #5677FB;
+  border-color: #ff7b00;
 }
 
 .dash-left__search-input::placeholder {
@@ -3486,7 +3555,7 @@
   width: 100%;
   max-width: 600px;
   background: #ffffff;
-  border: 3px solid #5677fb;
+  border: 3px solid #ff7b00;
   border-radius: 24px;
   padding: 40px;
   display: flex;
@@ -3524,7 +3593,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 32px;
   font-weight: 800;
-  color: #5677fb;
+  color: #ff7b00;
   margin: 0 0 32px 0;
   text-align: center;
 }
@@ -3559,12 +3628,12 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 12px;
-  color: #5677FB;
+  color: #ff7b00;
 }
 
 .add-group-modal__input {
   border: none;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.3);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.3);
   border-radius: 0;
   padding: 8px 0;
   background: transparent;
@@ -3577,7 +3646,7 @@
 }
 
 .add-group-modal__input:focus {
-  border-bottom-color: #5677FB;
+  border-bottom-color: #ff7b00;
   border-bottom-width: 2px;
 }
 
@@ -3636,7 +3705,7 @@
 }
 
 .add-group-modal__submit-btn {
-  background: #5677FB;
+  background: #ff7b00;
   color: #ffffff;
 }
 
@@ -3663,7 +3732,7 @@
   justify-content: space-between;
   gap: 8px;
   border: none;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.3);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.3);
   border-radius: 0;
   padding: 8px 0;
   font-family: 'Montserrat', sans-serif;
@@ -3677,7 +3746,7 @@
 }
 
 .add-group-modal__day-button:hover:not(:disabled) {
-  border-bottom-color: #5677FB;
+  border-bottom-color: #ff7b00;
   border-bottom-width: 2px;
 }
 
@@ -3693,7 +3762,7 @@
   right: 0;
   margin-top: 4px;
   background: #ffffff;
-  border: 1px solid rgba(86, 119, 251, 0.3);
+  border: 1px solid rgba(255, 123, 0, 0.3);
   border-radius: 8px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
@@ -3709,7 +3778,7 @@
   cursor: pointer;
   transition: background 0.2s;
   border: none;
-  border-bottom: 1px solid rgba(86, 119, 251, 0.1);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.1);
   background: transparent;
   text-align: left;
   font-family: 'Montserrat', sans-serif;
@@ -3723,12 +3792,12 @@
 }
 
 .add-group-modal__day-item:hover {
-  background: rgba(86, 119, 251, 0.05);
+  background: rgba(255, 123, 0, 0.05);
 }
 
 .add-group-modal__day-item--active {
-  background: rgba(86, 119, 251, 0.1);
-  color: #5677FB;
+  background: rgba(255, 123, 0, 0.1);
+  color: #ff7b00;
   font-weight: 600;
 }
 

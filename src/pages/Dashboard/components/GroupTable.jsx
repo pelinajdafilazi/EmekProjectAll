@@ -21,7 +21,7 @@ export default function GroupTable({ groups, selectedId, onSelect, interactive =
         <div className="groups-table__cell--header">Yaş Aralığı</div>
       </div>
 
-      <div className="dash-list" role="list">
+      <div className="dash-list dash-list--groups" role="list">
         {groups.map((group) => {
           const active = interactive && group.id === selectedId;
           return (
