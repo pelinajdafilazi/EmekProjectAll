@@ -30,11 +30,11 @@ namespace Emek.Infrastructure.Services.Attendances
                 .FirstOrDefaultAsync(l => l.Id == lessonId)
                 ?? throw new Exception($"ID'si '{lessonId}' olan ders bulunamadı.");
 
-            // Derse kayıtlı aktif öğrencileri getir
+            // Derse kayıtlı aktif öğrencileri getir (sadece aktif öğrenciler)
             var lessonStudents = await _context.LessonStudents
                 .Include(ls => ls.Student)
                 .AsNoTracking()
-                .Where(ls => ls.LessonId == lessonId && ls.IsActive)
+                .Where(ls => ls.LessonId == lessonId && ls.IsActive && ls.Student.IsActive)
                 .ToListAsync();
 
             // Eğer attendanceDate verilmişse, o tarihe ait attendance bilgilerini getir
@@ -194,9 +194,11 @@ namespace Emek.Infrastructure.Services.Attendances
                 .OrderBy(a => a.AttendanceDate)
                 .ToListAsync();
 
-            // Ders bilgilerini map et
+            // Ders bilgilerini map et (sadece aktif öğrenciler)
             var currentStudentCount = await _context.LessonStudents
-                .CountAsync(ls => ls.LessonId == lessonId && ls.IsActive);
+                .Include(ls => ls.Student)
+                .Where(ls => ls.LessonId == lessonId && ls.IsActive && ls.Student.IsActive)
+                .CountAsync();
 
             var lessonResponse = new LessonResponseDTOs
             {

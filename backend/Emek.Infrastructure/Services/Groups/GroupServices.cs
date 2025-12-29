@@ -146,7 +146,7 @@ namespace Emek.Infrastructure.Services.Groups
         {
             var list = await _context.GroupStudents
                 .Include(gs => gs.Student)
-                .Where(gs => gs.GroupId == groupId && gs.IsActive)
+                .Where(gs => gs.GroupId == groupId && gs.IsActive && gs.Student.IsActive)
                 .ToListAsync();
 
             return list.Select(MapToStudentResponse);
@@ -227,15 +227,16 @@ namespace Emek.Infrastructure.Services.Groups
 
         public async Task<IEnumerable<StudentWithGroupInfoResponse>> GetAllStudentsWithGroupInfoAsync()
         {
-            // Tüm öğrencileri al (GetAllAsync ile aynı mantık)
+            // Sadece aktif öğrencileri al
             var students = await _context.StudentPersonalInfos
+                .Where(s => s.IsActive)
                 .ToListAsync();
 
-            // Tüm aktif grup-öğrenci ilişkilerini al
+            // Tüm aktif grup-öğrenci ilişkilerini al (sadece aktif öğrenciler)
             var activeGroupStudents = await _context.GroupStudents
                 .Include(gs => gs.Group)
                 .Include(gs => gs.Student)
-                .Where(gs => gs.IsActive)
+                .Where(gs => gs.IsActive && gs.Student.IsActive)
                 .ToListAsync();
 
             // Öğrenci ID'ye göre grup bilgilerini grupla
@@ -277,13 +278,15 @@ namespace Emek.Infrastructure.Services.Groups
 
         public async Task<IEnumerable<StudentWithGroupInfoResponse>> GetStudentsWithoutGroupsAsync()
         {
-            // Tüm öğrencileri al
+            // Sadece aktif öğrencileri al
             var students = await _context.StudentPersonalInfos
+                .Where(s => s.IsActive)
                 .ToListAsync();
 
-            // Tüm aktif grup-öğrenci ilişkilerini al
+            // Tüm aktif grup-öğrenci ilişkilerini al (sadece aktif öğrenciler)
             var activeGroupStudents = await _context.GroupStudents
-                .Where(gs => gs.IsActive)
+                .Include(gs => gs.Student)
+                .Where(gs => gs.IsActive && gs.Student.IsActive)
                 .Select(gs => gs.StudentId)
                 .Distinct()
                 .ToListAsync();

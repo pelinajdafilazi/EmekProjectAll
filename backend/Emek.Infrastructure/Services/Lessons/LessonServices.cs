@@ -81,9 +81,11 @@ namespace Emek.Infrastructure.Services.Lessons
             if (request.Capacity <= 0)
                 throw new Exception("Kapasite 0'dan büyük olmalıdır.");
 
-            // Mevcut öğrenci sayısını kontrol et
+            // Mevcut öğrenci sayısını kontrol et (sadece aktif öğrenciler)
             var currentStudentCount = await _context.LessonStudents
-                .CountAsync(ls => ls.LessonId == lesson.Id && ls.IsActive);
+                .Include(ls => ls.Student)
+                .Where(ls => ls.LessonId == lesson.Id && ls.IsActive && ls.Student.IsActive)
+                .CountAsync();
 
             if (request.Capacity < currentStudentCount)
                 throw new Exception($"Yeni kapasite ({request.Capacity}), mevcut öğrenci sayısından ({currentStudentCount}) küçük olamaz.");
@@ -112,9 +114,11 @@ namespace Emek.Infrastructure.Services.Lessons
             if (request.NewCapacity <= 0)
                 throw new Exception("Kapasite 0'dan büyük olmalıdır.");
 
-            // Mevcut öğrenci sayısını kontrol et
+            // Mevcut öğrenci sayısını kontrol et (sadece aktif öğrenciler)
             var currentStudentCount = await _context.LessonStudents
-                .CountAsync(ls => ls.LessonId == lesson.Id && ls.IsActive);
+                .Include(ls => ls.Student)
+                .Where(ls => ls.LessonId == lesson.Id && ls.IsActive && ls.Student.IsActive)
+                .CountAsync();
 
             if (request.NewCapacity < currentStudentCount)
                 throw new Exception($"Yeni kapasite ({request.NewCapacity}), mevcut öğrenci sayısından ({currentStudentCount}) küçük olamaz.");
@@ -182,7 +186,7 @@ namespace Emek.Infrastructure.Services.Lessons
 
             var activeLessonStudents = await _context.LessonStudents
                 .Include(ls => ls.Student)
-                .Where(ls => ls.LessonId == lessonId && ls.IsActive)
+                .Where(ls => ls.LessonId == lessonId && ls.IsActive && ls.Student.IsActive)
                 .ToListAsync();
 
             return new LessonCapacityAndStudentListDTO
@@ -219,9 +223,11 @@ namespace Emek.Infrastructure.Services.Lessons
             if (existingActive != null)
                 throw new Exception("Öğrenci zaten bu derste aktif olarak kayıtlı.");
 
-            // Kapasite kontrolü
+            // Kapasite kontrolü (sadece aktif öğrenciler)
             var currentStudentCount = await _context.LessonStudents
-                .CountAsync(ls => ls.LessonId == lesson.Id && ls.IsActive);
+                .Include(ls => ls.Student)
+                .Where(ls => ls.LessonId == lesson.Id && ls.IsActive && ls.Student.IsActive)
+                .CountAsync();
 
             if (currentStudentCount >= lesson.Capacity)
                 throw new Exception($"Ders kapasitesi dolu. Maksimum kapasite: {lesson.Capacity}");
@@ -250,9 +256,11 @@ namespace Emek.Infrastructure.Services.Lessons
                 .FirstOrDefaultAsync(l => l.Id == request.LessonId)
                 ?? throw new Exception($"ID'si '{request.LessonId}' olan ders bulunamadı.");
 
-            // Mevcut öğrenci sayısını kontrol et
+            // Mevcut öğrenci sayısını kontrol et (sadece aktif öğrenciler)
             var currentStudentCount = await _context.LessonStudents
-                .CountAsync(ls => ls.LessonId == lesson.Id && ls.IsActive);
+                .Include(ls => ls.Student)
+                .Where(ls => ls.LessonId == lesson.Id && ls.IsActive && ls.Student.IsActive)
+                .CountAsync();
 
             if (currentStudentCount + request.StudentIds.Count > lesson.Capacity)
                 throw new Exception($"Toplu atama sonrası öğrenci sayısı ({currentStudentCount + request.StudentIds.Count}) kapasiteyi ({lesson.Capacity}) aşacaktır.");
@@ -350,7 +358,7 @@ namespace Emek.Infrastructure.Services.Lessons
 
             var activeLessonStudents = await _context.LessonStudents
                 .Include(ls => ls.Student)
-                .Where(ls => ls.LessonId == lessonId && ls.IsActive)
+                .Where(ls => ls.LessonId == lessonId && ls.IsActive && ls.Student.IsActive)
                 .ToListAsync();
 
             return new RegisteredStudentsFromLessonDTO
@@ -370,10 +378,10 @@ namespace Emek.Infrastructure.Services.Lessons
                 .FirstOrDefaultAsync(l => l.Id == lessonId)
                 ?? throw new Exception($"ID'si '{lessonId}' olan ders bulunamadı.");
 
-            // Dersin grubundaki aktif öğrencileri al
+            // Dersin grubundaki aktif öğrencileri al (sadece aktif öğrenciler)
             var groupStudents = await _context.GroupStudents
                 .Include(gs => gs.Student)
-                .Where(gs => gs.GroupId == lesson.GroupId && gs.IsActive)
+                .Where(gs => gs.GroupId == lesson.GroupId && gs.IsActive && gs.Student.IsActive)
                 .Select(gs => gs.StudentId)
                 .ToListAsync();
 
@@ -386,8 +394,9 @@ namespace Emek.Infrastructure.Services.Lessons
             // Gruba kayıtlı ama derse kayıtlı olmayan öğrencileri bul
             var unRegisteredStudentIds = groupStudents.Except(registeredStudentIds).ToList();
 
+            // Sadece aktif öğrencileri getir
             var unRegisteredStudents = await _context.StudentPersonalInfos
-                .Where(s => unRegisteredStudentIds.Contains(s.Id))
+                .Where(s => unRegisteredStudentIds.Contains(s.Id) && s.IsActive)
                 .ToListAsync();
 
             return new UnRegisteredStudentsFromLessonDTO
@@ -400,8 +409,11 @@ namespace Emek.Infrastructure.Services.Lessons
 
         private async Task<LessonResponseDTOs> MapToResponseAsync(Lesson lesson)
         {
+            // Sadece aktif öğrencileri say
             var currentStudentCount = await _context.LessonStudents
-                .CountAsync(ls => ls.LessonId == lesson.Id && ls.IsActive);
+                .Include(ls => ls.Student)
+                .Where(ls => ls.LessonId == lesson.Id && ls.IsActive && ls.Student.IsActive)
+                .CountAsync();
 
             return new LessonResponseDTOs
             {
