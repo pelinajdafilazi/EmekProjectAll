@@ -100,6 +100,34 @@ export default function DashboardPage() {
     }
   };
 
+  // Handle student deletion
+  const handleStudentDeleted = async (deletedStudentId) => {
+    // Remove from students list
+    setStudents(prev => prev.filter(s => s.id !== deletedStudentId));
+    // If deleted student was selected, clear selection
+    if (selectedStudentId === deletedStudentId) {
+      setSelectedStudentId(null);
+      setSelectedStudentDetails(null);
+    }
+  };
+
+  // Handle student update
+  const handleStudentUpdated = async (updatedStudent) => {
+    // Update in students list
+    setStudents(prev => prev.map(s => s.id === updatedStudent.id ? updatedStudent : s));
+    // Update selected student details
+    if (selectedStudentId === updatedStudent.id) {
+      // Reload relatives
+      try {
+        const relatives = await StudentService.getStudentRelatives(updatedStudent.id);
+        updatedStudent.relatives = transformRelatives(relatives);
+      } catch (error) {
+        console.error('Yakınlar yüklenirken hata:', error);
+      }
+      setSelectedStudentDetails(updatedStudent);
+    }
+  };
+
   // Load students when Öğrenciler view is active
   useEffect(() => {
     if (activeView === 'Öğrenciler') {
@@ -507,6 +535,7 @@ export default function DashboardPage() {
 
     // Tüm yakınları dönüştür
     return relatives.map(relative => ({
+      id: relative.id,
       relationType: relative.relationType || '-',
       name: `${relative.firstName || ''} ${relative.lastName || ''}`.trim() || '-',
       tc: relative.nationalId || '-',
@@ -1069,8 +1098,13 @@ export default function DashboardPage() {
               onSelect={setSelectedStudentId}
               loading={studentsLoading}
               groups={groupState.groups}
+              onStudentDeleted={handleStudentDeleted}
             />
-            <StudentDetailsPanel student={selectedStudent} loading={studentDetailsLoading} />
+            <StudentDetailsPanel 
+              student={selectedStudent} 
+              loading={studentDetailsLoading}
+              onStudentUpdated={handleStudentUpdated}
+            />
           </>
         )}
         {activeView === 'Gruplar' && (

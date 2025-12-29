@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { FaTrash } from 'react-icons/fa';
+import { FaPencil } from "react-icons/fa6";
 import * as GroupService from '../../../services/groupService';
+import { StudentService } from '../../../services/studentService';
 import StudentImage from './StudentImage';
 
 function StudentAvatar({ student, name }) {
@@ -10,11 +13,12 @@ function StudentAvatar({ student, name }) {
   );
 }
 
-export default function StudentListPanel({ students, selectedId, onSelect, loading, groups = [] }) {
+export default function StudentListPanel({ students, selectedId, onSelect, loading, groups = [], onStudentDeleted, onStudentUpdated }) {
   const [selectedGroupFilter, setSelectedGroupFilter] = useState(null); // null = Tüm Grup
   const [filteredStudents, setFilteredStudents] = useState(students);
   const [groupStudentsMap, setGroupStudentsMap] = useState(new Map()); // Grup ID -> Öğrenci ID'leri
   const [studentGroupMap, setStudentGroupMap] = useState(new Map()); // Öğrenci ID -> Grup adı
+  const [deletingStudentId, setDeletingStudentId] = useState(null);
 
   // Gruplardaki öğrencileri yükle
   useEffect(() => {
@@ -92,6 +96,30 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
     setSelectedGroupFilter(groupId);
   };
 
+  const handleDeleteClick = async (e, studentId) => {
+    e.stopPropagation(); // Row click event'ini engelle
+    
+    const confirmed = window.confirm('Bu öğrenciyi silmek istediğinize emin misiniz?');
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingStudentId(studentId);
+    try {
+      await StudentService.deleteStudent(studentId);
+      // Silme başarılı, parent component'e bildir
+      if (onStudentDeleted) {
+        onStudentDeleted(studentId);
+      }
+    } catch (error) {
+      alert('Öğrenci silinirken hata oluştu: ' + (error.message || 'Bilinmeyen hata'));
+      console.error('Öğrenci silme hatası:', error);
+    } finally {
+      setDeletingStudentId(null);
+    }
+  };
+
+
   return (
     <aside className="dash-left">
       <h1 className="dash-left__title">Öğrenci Listesi</h1>
@@ -138,19 +166,34 @@ export default function StudentListPanel({ students, selectedId, onSelect, loadi
           const studentBranch = s.team || s.branch || s.profile?.branch || s._backendData?.branch || '-';
           
           return (
-            <button
+            <div
               key={s.id}
-              type="button"
-              className={`dash-row ${active ? 'dash-row--active' : ''}`}
-              onClick={() => onSelect?.(s.id)}
+              className={`dash-row-wrapper ${active ? 'dash-row--active' : ''}`}
             >
-              <StudentAvatar student={s} name={s.name} />
-              <div className="dash-row__name">{s.name}</div>
-              <div className="dash-row__meta">{studentGroup}</div>
-              <div className="dash-row__meta">{studentBranch}</div>
-              <div className="dash-row__meta">{s.age || '-'}</div>
-              <div className="dash-row__indicator" aria-hidden="true" />
-            </button>
+              <button
+                type="button"
+                className={`dash-row ${active ? 'dash-row--active' : ''}`}
+                onClick={() => onSelect?.(s.id)}
+              >
+                <StudentAvatar student={s} name={s.name} />
+                <div className="dash-row__name">{s.name}</div>
+                <div className="dash-row__meta">{studentGroup}</div>
+                <div className="dash-row__meta">{studentBranch}</div>
+                <div className="dash-row__meta">{s.age || '-'}</div>
+                <div className="dash-row__indicator" aria-hidden="true" />
+              </button>
+              <div className="dash-row__actions">
+                <button
+                  type="button"
+                  className="dash-row__action-btn dash-row__action-btn--delete"
+                  onClick={(e) => handleDeleteClick(e, s.id)}
+                  disabled={deletingStudentId === s.id}
+                  title="Sil"
+                >
+                  <FaTrash size={14} />
+                </button>
+              </div>
+            </div>
           );
         })}
       </div>

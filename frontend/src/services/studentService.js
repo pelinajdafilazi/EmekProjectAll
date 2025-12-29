@@ -280,6 +280,88 @@ export const StudentService = {
         error.response?.data?.message || 'Öğrenci silinirken hata oluştu'
       );
     }
+  },
+
+  /**
+   * Yakın bilgisini güncelle
+   * @param {string|number} relativeId - Yakın ID'si
+   * @param {Object} updateData - Güncellenecek yakın verisi
+   * @returns {Promise<Object>} Güncellenmiş yakın bilgisi
+   */
+  async updateRelative(relativeId, updateData) {
+    try {
+      const response = await apiClient.put(`/StudentRelatives/${relativeId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw new ApiError(
+        error.response?.data?.message || 'Yakın bilgisi güncellenirken hata oluştu'
+      );
+    }
+  },
+
+  /**
+   * Yakın bilgisini sil
+   * @param {string|number} relativeId - Yakın ID'si
+   * @returns {Promise<void>}
+   */
+  async deleteRelative(relativeId) {
+    try {
+      await apiClient.delete(`/StudentRelatives/${relativeId}`);
+    } catch (error) {
+      throw new ApiError(
+        error.response?.data?.message || 'Yakın bilgisi silinirken hata oluştu'
+      );
+    }
+  },
+
+  /**
+   * Yeni yakın bilgisi ekle
+   * @param {Object} relativeData - Eklenecek yakın verisi
+   * @returns {Promise<Object>} Eklenen yakın bilgisi
+   */
+  async createRelative(relativeData) {
+    try {
+      const response = await apiClient.post('/StudentRelatives', relativeData);
+      return response.data;
+    } catch (error) {
+      throw new ApiError(
+        error.response?.data?.message || 'Yakın bilgisi eklenirken hata oluştu'
+      );
+    }
+  },
+
+  /**
+   * Anne bilgilerini güncelle
+   * @param {string|number} motherId - Anne ID'si
+   * @param {Object} updateData - Güncellenecek anne verisi
+   * @returns {Promise<Object>} Güncellenmiş anne bilgisi
+   */
+  async updateMother(motherId, updateData) {
+    try {
+      const response = await apiClient.put(`/StudentMotherInfo/${motherId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw new ApiError(
+        error.response?.data?.message || 'Anne bilgisi güncellenirken hata oluştu'
+      );
+    }
+  },
+
+  /**
+   * Baba bilgilerini güncelle
+   * @param {string|number} fatherId - Baba ID'si
+   * @param {Object} updateData - Güncellenecek baba verisi
+   * @returns {Promise<Object>} Güncellenmiş baba bilgisi
+   */
+  async updateFather(fatherId, updateData) {
+    try {
+      const response = await apiClient.put(`/StudentFatherInfo/${fatherId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw new ApiError(
+        error.response?.data?.message || 'Baba bilgisi güncellenirken hata oluştu'
+      );
+    }
   }
 };
 
@@ -335,10 +417,24 @@ export function transformStudentToUpdateRequest(student) {
   const profileImage = student.photo || backendData.profileImageBase64;
   const profileImageContentType = backendData.profileImageContentType;
 
+  // dateOfBirth için mevcut değeri kullan veya yeni tarihi parse et
+  let dateOfBirthValue = backendData.dateOfBirth;
+  if (student.profile?.dob && student.profile.dob !== '-') {
+    const parsedDate = formatDateToISO(student.profile.dob);
+    if (parsedDate) {
+      dateOfBirthValue = parsedDate;
+    }
+  }
+  
+  // Eğer hala geçerli bir tarih yoksa, mevcut öğrencinin doğum tarihini kullan
+  if (!dateOfBirthValue || dateOfBirthValue === '-') {
+    dateOfBirthValue = backendData.dateOfBirth || new Date().toISOString();
+  }
+
   return {
     firstName: studentName.firstName || backendData.firstName || '',
     lastName: studentName.lastName || backendData.lastName || '',
-    dateOfBirth: formatDateToISO(student.profile?.dob) || backendData.dateOfBirth || new Date().toISOString(),
+    dateOfBirth: dateOfBirthValue,
     nationalId: student.profile?.tc || backendData.nationalId || '',
     schoolName: student.profile?.school || backendData.schoolName || '',
     homeAddress: student.profile?.address || backendData.homeAddress || '',
@@ -347,6 +443,96 @@ export function transformStudentToUpdateRequest(student) {
     phoneNumber: student.profile?.phone || backendData.phoneNumber || null,
     profileImageBase64: profileImage || null,
     profileImageContentType: profileImageContentType || null,
+    motherInfo: {
+      firstName: motherName.firstName || backendData.mother?.firstName || '',
+      lastName: motherName.lastName || backendData.mother?.lastName || '',
+      nationalId: student.parents?.mother?.tc || backendData.mother?.nationalId || '',
+      phoneNumber: student.parents?.mother?.phone || backendData.mother?.phoneNumber || '',
+      email: backendData.mother?.email || '',
+      occupation: student.parents?.mother?.occupation || backendData.mother?.occupation || ''
+    },
+    fatherInfo: {
+      firstName: fatherName.firstName || backendData.father?.firstName || '',
+      lastName: fatherName.lastName || backendData.father?.lastName || '',
+      nationalId: student.parents?.father?.tc || backendData.father?.nationalId || '',
+      phoneNumber: student.parents?.father?.phone || backendData.father?.phoneNumber || '',
+      email: backendData.father?.email || '',
+      occupation: student.parents?.father?.occupation || backendData.father?.occupation || ''
+    }
+  };
+}
+
+/**
+ * Frontend student formatından backend UpdateStudentRequest formatına dönüştürür
+ * Profil fotoğrafını dahil ETMEZ (sadece diğer bilgileri güncellemek için)
+ * @param {Object} student - Frontend formatında öğrenci objesi
+ * @returns {Object} Backend UpdateStudentRequest formatı
+ */
+export function transformStudentToUpdateRequestWithoutPhoto(student) {
+  if (!student || !student._backendData) {
+    throw new Error('Öğrenci verisi eksik veya geçersiz');
+  }
+
+  const backendData = student._backendData;
+  
+  // Adı Soyadı'nı firstName ve lastName'e ayır
+  const parseFullName = (fullName) => {
+    if (!fullName) return { firstName: '', lastName: '' };
+    const parts = fullName.trim().split(' ');
+    const lastName = parts.pop() || '';
+    const firstName = parts.join(' ') || '';
+    return { firstName, lastName };
+  };
+
+  // Tarihi ISO formatına çevir
+  const formatDateToISO = (dateStr) => {
+    if (!dateStr || dateStr.trim() === '') return null;
+    try {
+      if (dateStr.includes('.')) {
+        const [day, month, year] = dateStr.split('.');
+        const date = new Date(`${year}-${month}-${day}`);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      }
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const studentName = parseFullName(student.name || (backendData.firstName && backendData.lastName ? `${backendData.firstName} ${backendData.lastName}` : ''));
+  const motherName = parseFullName(student.parents?.mother?.name || (backendData.mother?.firstName && backendData.mother?.lastName ? `${backendData.mother.firstName} ${backendData.mother.lastName}` : ''));
+  const fatherName = parseFullName(student.parents?.father?.name || (backendData.father?.firstName && backendData.father?.lastName ? `${backendData.father.firstName} ${backendData.father.lastName}` : ''));
+
+  // dateOfBirth için mevcut değeri kullan veya yeni tarihi parse et
+  let dateOfBirthValue = backendData.dateOfBirth;
+  if (student.profile?.dob && student.profile.dob !== '-') {
+    const parsedDate = formatDateToISO(student.profile.dob);
+    if (parsedDate) {
+      dateOfBirthValue = parsedDate;
+    }
+  }
+  
+  if (!dateOfBirthValue || dateOfBirthValue === '-') {
+    dateOfBirthValue = backendData.dateOfBirth || new Date().toISOString();
+  }
+
+  return {
+    firstName: studentName.firstName || backendData.firstName || '',
+    lastName: studentName.lastName || backendData.lastName || '',
+    dateOfBirth: dateOfBirthValue,
+    nationalId: student.profile?.tc || backendData.nationalId || '',
+    schoolName: student.profile?.school || backendData.schoolName || '',
+    homeAddress: student.profile?.address || backendData.homeAddress || '',
+    branch: student.profile?.branch || student.team || backendData.branch || '',
+    class: student.profile?.grade || backendData.class || null,
+    phoneNumber: student.profile?.phone || backendData.phoneNumber || null,
+    // Profil fotoğrafını DAHİL ETME - undefined gönder (null değil, çünkü null backend'de siler)
     motherInfo: {
       firstName: motherName.firstName || backendData.mother?.firstName || '',
       lastName: motherName.lastName || backendData.mother?.lastName || '',
