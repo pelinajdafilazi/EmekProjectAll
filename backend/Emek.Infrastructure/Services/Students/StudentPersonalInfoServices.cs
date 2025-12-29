@@ -130,6 +130,123 @@ namespace Emek.Infrastructure.Services.Students
             return await GetByIdWithParentsAsync(student.Id);
         }
 
+        public async Task<StudentResponse> UpdateAsync(Guid id, UpdateStudentRequest request)
+        {
+            // TC kısıtlamaları
+            ValidateNationalId(request.NationalId, "Öğrenci");
+            ValidateNationalId(request.MotherInfo.NationalId, "Anne");
+            ValidateNationalId(request.FatherInfo.NationalId, "Baba");
+
+            // Öğrenciyi bul
+            var student = await _context.StudentPersonalInfos
+                .Include(s => s.Mother)
+                .Include(s => s.Father)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+                throw new Exception($"ID'si '{id}' olan öğrenci bulunamadı.");
+
+            // TC değiştiyse kontrol et
+            if (student.NationalId != request.NationalId)
+            {
+                var existingStudent = await _context.StudentPersonalInfos
+                    .FirstOrDefaultAsync(s => s.NationalId == request.NationalId && s.Id != id);
+
+                if (existingStudent != null)
+                    throw new Exception($"TC Kimlik No'su '{request.NationalId}' olan başka bir öğrenci zaten kayıtlıdır.");
+            }
+
+            // Anne TC'si ile kontrol et, varsa güncelle, yoksa oluştur
+            var mother = await _context.StudentMotherInfos
+                .FirstOrDefaultAsync(m => m.NationalId == request.MotherInfo.NationalId);
+
+            if (mother == null)
+            {
+                // Yeni anne oluştur
+                mother = new StudentMotherInfo
+                {
+                    Id = Guid.NewGuid(),
+                    FirstName = request.MotherInfo.FirstName,
+                    LastName = request.MotherInfo.LastName,
+                    NationalId = request.MotherInfo.NationalId,
+                    PhoneNumber = request.MotherInfo.PhoneNumber,
+                    Email = request.MotherInfo.Email,
+                    Occupation = request.MotherInfo.Occupation,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.StudentMotherInfos.Add(mother);
+            }
+            else
+            {
+                // Mevcut anne bilgilerini güncelle
+                mother.FirstName = request.MotherInfo.FirstName;
+                mother.LastName = request.MotherInfo.LastName;
+                mother.PhoneNumber = request.MotherInfo.PhoneNumber;
+                mother.Email = request.MotherInfo.Email;
+                mother.Occupation = request.MotherInfo.Occupation;
+                mother.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Baba TC'si ile kontrol et, varsa güncelle, yoksa oluştur
+            var father = await _context.StudentFatherInfos
+                .FirstOrDefaultAsync(f => f.NationalId == request.FatherInfo.NationalId);
+
+            if (father == null)
+            {
+                // Yeni baba oluştur
+                father = new StudentFatherInfo
+                {
+                    Id = Guid.NewGuid(),
+                    FirstName = request.FatherInfo.FirstName,
+                    LastName = request.FatherInfo.LastName,
+                    NationalId = request.FatherInfo.NationalId,
+                    PhoneNumber = request.FatherInfo.PhoneNumber,
+                    Email = request.FatherInfo.Email,
+                    Occupation = request.FatherInfo.Occupation,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.StudentFatherInfos.Add(father);
+            }
+            else
+            {
+                // Mevcut baba bilgilerini güncelle
+                father.FirstName = request.FatherInfo.FirstName;
+                father.LastName = request.FatherInfo.LastName;
+                father.PhoneNumber = request.FatherInfo.PhoneNumber;
+                father.Email = request.FatherInfo.Email;
+                father.Occupation = request.FatherInfo.Occupation;
+                father.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Öğrenci bilgilerini güncelle
+            student.FirstName = request.FirstName;
+            student.LastName = request.LastName;
+            student.DateOfBirth = request.DateOfBirth;
+            student.NationalId = request.NationalId;
+            student.SchoolName = request.SchoolName;
+            student.HomeAddress = request.HomeAddress;
+            student.Branch = request.Branch;
+            student.Class = request.Class;
+            student.PhoneNumber = request.PhoneNumber;
+            student.MotherId = mother.Id;
+            student.FatherId = father.Id;
+            student.UpdatedAt = DateTime.UtcNow;
+
+            // Profil resmi güncelle (eğer gönderildiyse)
+            if (request.ProfileImageBase64 != null)
+            {
+                student.ProfileImageBase64 = request.ProfileImageBase64;
+                student.ProfileImageContentType = request.ProfileImageContentType;
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Güncellenmiş öğrenciyi anne/baba bilgileri ile birlikte döndür
+            return await GetByIdWithParentsAsync(student.Id);
+        }
+
         public async Task<StudentResponse> GetByIdAsync(Guid id)
         {
             var student = await _context.StudentPersonalInfos

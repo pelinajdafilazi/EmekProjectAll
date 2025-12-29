@@ -11,6 +11,9 @@ namespace Emek.Application.Interfaces.Students
         // Öğrenci oluşturma (anne/baba bilgileri ile birlikte)
         Task<StudentResponse> CreateAsync(CreateStudentRequest request);
         
+        // Öğrenci güncelleme (anne/baba bilgileri ile birlikte)
+        Task<StudentResponse> UpdateAsync(Guid id, UpdateStudentRequest request);
+        
         // Öğrenci sorgulama - sadece kendi bilgileri
         Task<StudentResponse> GetByIdAsync(Guid id);
         

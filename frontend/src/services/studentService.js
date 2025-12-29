@@ -258,7 +258,7 @@ export const StudentService = {
    */
   async updateStudent(studentId, updateData) {
     try {
-      const response = await apiClient.put(`/StudentPersonalInfo/${studentId}`, updateData);
+      const response = await apiClient.put(`/StudentPersonalInfo/update/${studentId}`, updateData);
       return transformBackendToStudent(response.data);
     } catch (error) {
       throw new ApiError(
@@ -268,13 +268,13 @@ export const StudentService = {
   },
 
   /**
-   * Öğrenciyi sil (make-passive endpoint'i kullanarak)
+   * Öğrenciyi sil (DELETE endpoint kullanarak)
    * @param {string|number} studentId - Öğrenci ID'si
    * @returns {Promise<void>}
    */
   async deleteStudent(studentId) {
     try {
-      await apiClient.post(`/StudentPersonalInfo/${studentId}/make-passive`);
+      await apiClient.delete(`/StudentPersonalInfo/${studentId}`);
     } catch (error) {
       throw new ApiError(
         error.response?.data?.message || 'Öğrenci silinirken hata oluştu'

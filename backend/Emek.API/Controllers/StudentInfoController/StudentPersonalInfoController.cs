@@ -45,6 +45,20 @@ namespace Emek.API.Controllers.StudentInfoController
             }
         }
 
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStudentRequest request)
+        {
+            try
+            {
+                var student = await _studentService.UpdateAsync(id, request);
+                return Ok(student);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("{id}/with-parents")]
         public async Task<IActionResult> GetByIdWithParents(Guid id)
         {
@@ -118,7 +132,8 @@ namespace Emek.API.Controllers.StudentInfoController
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var students = await _studentService.GetAllAsync();
+            // Sadece aktif öğrencileri döndür
+            var students = await _studentService.GetActiveStudentsAsync();
             return Ok(students);
         }
 
@@ -180,6 +195,21 @@ namespace Emek.API.Controllers.StudentInfoController
             }
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                await _studentService.DeactivateStudentAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [Obsolete("Use DELETE endpoint instead")]
         [HttpPost("{id}/make-passive")]
         public async Task<IActionResult> MakePassive(Guid id)
         {

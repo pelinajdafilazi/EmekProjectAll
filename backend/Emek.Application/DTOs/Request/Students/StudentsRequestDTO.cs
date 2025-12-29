@@ -38,8 +38,16 @@ namespace Emek.Application.DTOs.Request.Students
         public string Branch { get; set; }
         public string? Class { get; set; } // Öğrencinin sınıfı
         public string? PhoneNumber { get; set; } // Öğrencinin telefon numarası
-        public Guid MotherId { get; set; }
-        public Guid FatherId { get; set; }
+        
+        // Profil resmi (opsiyonel - Base64)
+        public string? ProfileImageBase64 { get; set; }
+        public string? ProfileImageContentType { get; set; }
+        
+        // Anne Bilgileri (TC ile kontrol edilecek)
+        public UpdateMotherRequest MotherInfo { get; set; }
+        
+        // Baba Bilgileri (TC ile kontrol edilecek)
+        public UpdateFatherRequest FatherInfo { get; set; }
     }
 
     public class UpdateStudentProfileImageRequest

@@ -38,6 +38,8 @@ builder.Services.AddPersistence(builder.Configuration);
 
 // Application Services
 builder.Services.AddScoped<IStudentPersonalInfoServices, StudentPersonalInfoServices>();
+builder.Services.AddScoped<IStudentMotherInfoServices, StudentMotherInfoServices>();
+builder.Services.AddScoped<IStudentFatherInfoServices, StudentFatherInfoServices>();
 builder.Services.AddScoped<IRelativeServices, RelativeServices>();
 builder.Services.AddScoped<IGroupServices, GroupServices>();
 builder.Services.AddScoped<ILessonServices, LessonServices>();

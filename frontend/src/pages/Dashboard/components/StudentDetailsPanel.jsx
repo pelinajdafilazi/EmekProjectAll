@@ -512,8 +512,10 @@ export default function StudentDetailsPanel({ student, loading = false, onStuden
 
   const handleStudentEditClick = () => {
     setStudentEditMode(true);
+    setParentsEditMode(true); // Anne-baba bilgilerini de editable yap
     setEditingProfile(student?.profile || {});
     setEditingName(student?.name || '');
+    setEditingParents(student?.parents || {}); // Anne-baba bilgilerini de set et
   };
 
   const handleStudentSave = async () => {
@@ -524,14 +526,17 @@ export default function StudentDetailsPanel({ student, loading = false, onStuden
       const updatedStudent = {
         ...student,
         name: editingName !== null ? editingName : student.name,
-        profile: editingProfile || student.profile
+        profile: editingProfile || student.profile,
+        parents: editingParents || student.parents // Anne-baba bilgilerini de dahil et
       };
       // Profil fotoğrafını dahil etmeyen fonksiyonu kullan (fotoğraf kaybolmasın)
       const updateData = transformStudentToUpdateRequestWithoutPhoto(updatedStudent);
       await StudentService.updateStudent(student.id, updateData);
       setStudentEditMode(false);
+      setParentsEditMode(false); // Anne-baba edit mode'unu da kapat
       setEditingProfile(null);
       setEditingName(null);
+      setEditingParents(null); // Anne-baba editing state'ini de temizle
       if (onStudentUpdated) {
         // Reload student data
         const updated = await StudentService.getStudentById(student.id);
@@ -547,8 +552,10 @@ export default function StudentDetailsPanel({ student, loading = false, onStuden
 
   const handleStudentCancel = () => {
     setStudentEditMode(false);
+    setParentsEditMode(false); // Anne-baba edit mode'unu da kapat
     setEditingProfile(null);
     setEditingName(null);
+    setEditingParents(null); // Anne-baba editing state'ini de temizle
   };
 
   const handleParentsEditClick = () => {
