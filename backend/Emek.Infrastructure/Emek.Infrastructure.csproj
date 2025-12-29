@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Emek.Application\Emek.Application.csproj" />
+    <ProjectReference Include="..\Emek.Domain\Emek.Domain.csproj" />
+    <ProjectReference Include="..\Emek.Persistence\Emek.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: emek-dev-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: EmekSporDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - emek_dev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - emek-dev-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Emek.API/Dockerfile
+    container_name: emek-dev-backend
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=EmekSporDb;Username=postgres;Password=123456
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - emek-dev-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: emek-dev-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+    networks:
+      - emek-dev-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/build
+
+volumes:
+  emek_dev_postgres_data:
+
+networks:
+  emek-dev-network:
+    driver: bridge
+
